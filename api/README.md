@@ -373,5 +373,374 @@ pikachu 4 60
 ```
 
 ---
+---
 
-*Notes by Unishka Bisht — BCA 3rd Sem, Amrapali University, Haldwani*
+# Day 2 — APIs & Backend Basics
+
+> Node.js · Class Notes
+> ★ = exam important &nbsp;&nbsp; ↯ = interview favourite &nbsp;&nbsp; ✎ = note-worthy &nbsp;&nbsp; ✗ = common mistake
+
+---
+
+## 1. What is an API?
+
+**Definition:** An **API (Application Programming Interface)** is a middleman that allows two separate programs to talk to each other, without the client ever needing to touch the database directly.
+
+**Restaurant analogy:**
+- **You (the customer)** place an order — this is the client making a request.
+- **The waiter (the API)** carries your order to the kitchen and later brings your food back.
+- **The kitchen (the server)** does the actual work of preparing your order.
+- **The pantry (the database)** is where all the raw data/ingredients are stored.
+
+★ You never walk into the kitchen yourself — the waiter (API) protects it. A client never touches the database directly; it always goes through the API.
+
+```mermaid
+flowchart LR
+    A["YOU (Customer)<br/>'1 paneer pizza'"] -->|request| B["WAITER = API<br/>carries messages both ways"]
+    B -->|routes it| C["KITCHEN = SERVER<br/>does the work"]
+    C -->|query| D["PANTRY = DB<br/>stores everything"]
+    D -->|food comes back| C
+    C -->|response = JSON| B
+    B -->|response| A
+```
+
+---
+
+## 2. The Round Trip
+
+**Client → API → Server → Database → data flows back up as JSON**
+
+```mermaid
+flowchart LR
+    Client["CLIENT"] --> API["API"] --> Server["SERVER"] --> DB["DATABASE"]
+    DB -.->|JSON response| Server -.-> API -.-> Client
+```
+
+✎ This exact round trip happens for **every tap you make in any app**.
+
+---
+
+## 3. APIs Around You (Real-World Examples)
+
+| App | What the API does |
+|---|---|
+| Google Maps | App asks Maps API — "where am I? fastest route?" |
+| Instagram | Feed API fetches posts; like button = `POST /likes` |
+| WhatsApp | Message API delivers your text + the ✓✓ receipts |
+| YouTube | Video API sends the list, another streams the video |
+| Paytm / UPI | UPI = APIs between banks! scan → pay → bank APIs settle it |
+| Spotify | Search API finds the song; play = stream API |
+| Netflix | Recommendation API decides your homepage rows |
+| Weather App | `GET api.weather.com/pune` → `{ "temp": 31 }` |
+
+✎ You use 100s of APIs before breakfast — without knowing!
+
+---
+
+## 4. Resources — the "Things" ★
+
+**Definition:** A **resource** is any *noun* your app cares about: Student, Teacher, Product, Employee, Order, Book, Customer, Course, Payment…
+
+✎ If you can put "a / an / the" before it → it can be a resource.
+
+In REST, a resource is a noun with its own URL:
+- All students → `/students`
+- ONE student, roll 99 → `/students/99`
+- Their courses → `/students/99/courses`
+
+**↯ Golden rule:** Nouns live in the URL, verbs live in the method — never `/getStudents`!
+> URL says WHICH thing. Method says WHAT to do.
+
+---
+
+## 5. CRUD — Only 4 Things Ever Happen to Data ★
+
+**Definition:** **CRUD** = **Create, Read, Update, Delete** — the only four operations that ever happen to stored data.
+
+| CRUD | HTTP | SQL | Example |
+|---|---|---|---|
+| Create | `POST` | `INSERT` | `POST /students` — new admission |
+| Read | `GET` | `SELECT` | `GET /students/99` |
+| Update | `PUT` / `PATCH` | `UPDATE` | `PATCH /students/99` — fix marks |
+| Delete | `DELETE` | `DELETE` | `DELETE /students/99` — TC issued! |
+
+★ EVERY app — Instagram to ISRO — is just CRUD on resources, dressed up nicely.
+
+**Memory trick:** *Create Posts — Read Gets — Update Puts — Delete Deletes*
+
+### CRUD Everywhere
+
+- **College:** C — admit a student · R — view student list · U — update marks · D — remove student
+- **Library:** C — add new book · R — search catalogue · U — mark "issued" · D — remove torn book
+- **Hospital:** C — register patient · R — read reports · U — update prescription · D — discharge record
+- **Amazon:** C — place order · R — view orders · U — change address · D — cancel order
+- **Instagram:** C — new post · R — scroll feed · U — edit caption · D — delete post
+
+---
+
+## 6. The Five HTTP Methods, Explained
+
+### `GET` — "GIVE me data"
+
+**Definition:** Fetch data. Never changes anything!
+
+- **Analogy:** Reading a library book — look, don't write in it.
+- **When:** Lists, details, search results, feeds.
+- ✗ **Mistakes:** Sending a body with `GET`; using `GET` to change data (crawlers will click your "delete" links!)
+- **Response:** `200 OK`
+
+**Trick:** GET = GIVE
+
+### `POST` — "PUSH something new"
+
+**Definition:** Create a NEW resource. The server assigns the id.
+
+- **Analogy:** Dropping a filled admission form in the college box.
+- **When:** Signup, new order, new post, send message.
+- URL used is the **collection**, e.g. `/students` — no id yet!
+- ✗ **Mistakes:** POSTing to `/students/99` to create; forgetting `Content-Type`; expecting POST to be idempotent (2 clicks = 2 orders!)
+- **Response:** `201 Created` (not 200!)
+
+**Trick:** POST = POSTbox — new letter every time ✉
+
+### `PUT` — "REPLACE the whole thing"
+
+**Definition:** Replace the resource ENTIRELY with what you send.
+
+- **Analogy:** Swapping the whole SIM card — old one is gone.
+- **When:** "Save profile" forms that send every field.
+- ✗ **Mistake:** Sending only 1 field with PUT — the rest become empty/null! (that job is PATCH's)
+- **Idempotent ✓** — PUT the same body 10 times → same result. Safe to retry!
+
+**Trick:** PUT = PUT a new one in its place ↺
+
+### `PATCH` — "Fix just this PART"
+
+**Definition:** Update SOME fields, leave the rest untouched.
+
+- **Analogy:** Puncture repair — patch the hole, keep the tyre.
+- **When:** Change password only, edit caption, mark as read.
+- ✗ **Mistakes:** Using PUT when you mean PATCH (wipes fields!); assuming PATCH is always idempotent (usually yes, not guaranteed).
+
+**↯ PUT vs PATCH:** PUT → repaint the whole wall. PATCH → touch up one spot.
+
+**Trick:** PATCH = a patch on jeans ✂
+
+### `DELETE` — "DESTROY it"
+
+**Definition:** Remove the resource at that URL.
+
+- **Analogy:** Shredding one file from the cabinet.
+- **When:** Delete post, cancel booking, remove cart item.
+- Usually **no body** at all.
+- ✗ **Mistakes:** `DELETE /students` (boom — whole collection!); no auth check; returning 200 + body when 204 fits better.
+- **Idempotent ✓** — delete twice → still gone. 2nd call just returns 404.
+
+**Trick:** DELETE = DESTROY
+
+---
+
+## 7. Method Cheat Table ★
+
+**safe** = never changes data · **idempotent** = repeat → same result
+
+| Method | Safe? | Idempotent? | Body? | Success Code |
+|---|---|---|---|---|
+| `GET` | ✓ | ✓ | ✗ | 200 |
+| `POST` | ✗ | ✗ | ✓ | 201 |
+| `PUT` | ✗ | ✓ | ✓ | 200 |
+| `PATCH` | ✗ | ~usually | ✓ | 200 |
+| `DELETE` | ✗ | ✓ | rare | 204 |
+
+**↯** idempotent = lift button — press 5× → same floor. POST = doorbell — press 5× → rings 5×!
+
+---
+
+## 8. The HTTP Request — Inside the Envelope
+
+A request has 4 parts:
+
+```mermaid
+flowchart TD
+    A["1. Start Line<br/>POST /students HTTP/1.1<br/><i>method + URL + version</i>"] --> B["2. Headers<br/>Host, Content-Type,<br/>Authorization, Cookie<br/><i>labels on the envelope</i>"]
+    B --> C["3. Blank Line<br/><i>separates headers from body</i>"]
+    C --> D["4. Body<br/>{ 'name':'Aman','course':'BCA' }<br/><i>the parcel inside</i>"]
+```
+
+★ GET & DELETE usually have NO body — just the envelope.
+
+### Headers to Know ↯
+
+| Header | Meaning |
+|---|---|
+| `Content-Type` | "My body is JSON" → `application/json` — how should the server read this? |
+| `Accept` | "Please reply in JSON" — what the client wants back |
+| `Authorization` | The ID card → `Bearer <JWT token>` — who is asking? |
+| `Cookie` | Small notes the server gave you earlier, returned every time |
+| `Host` | Which website on this server — one IP, many sites! |
+| `User-Agent` | "I am Chrome on Windows" — who's knocking |
+
+✗ **Classic bug:** POST JSON without `Content-Type` → `req.body` = undefined!
+
+> Content-Type = what I'm SENDING · Accept = what I want BACK
+
+---
+
+## 9. The HTTP Response — The Reply Packet
+
+1. **Status line** — `HTTP/1.1 200 OK` → version + code + reason
+2. **Headers** — `Content-Type`, `Content-Length`, `Set-Cookie`, `Cache-Control`
+3. **Body** — the actual data (JSON!)
+
+**Why JSON? ★**
+- JavaScript Object Notation — Node speaks it natively
+- Human-readable, machine-parseable
+- Lighter than XML: `<name>Riya</name>` → `"name":"Riya"`
+- Every language can parse it
+
+**Read a response in 3 looks:** 1. status code → did it work? 2. `Content-Type` → what came back? 3. body → the goods
+
+---
+
+## 10. Status Codes — The Server's Mood ★
+
+**Rhyme:** 1 wait • 2 great • 3 relocate • 4 YOUR mistake • 5 server's fate
+
+```mermaid
+flowchart TD
+    S["HTTP Status Codes"] --> A["1xx<br/>hold on…<br/>informational"]
+    S --> B["2xx<br/>here you go ✓<br/>success"]
+    S --> C["3xx<br/>go there →<br/>redirection"]
+    S --> D["4xx<br/>YOUR fault<br/>client error"]
+    S --> E["5xx<br/>MY fault<br/>server error"]
+```
+
+### 1xx — "hold on"
+- **100 Continue** — "go ahead, send the rest." Used before big uploads.
+- **101 Switching Protocols** — "let's change languages!" HTTP → WebSocket upgrade.
+
+### 2xx — "here you go ✓"
+- **200 OK** — done, here it is. `GET /students` → list.
+- **201 Created** — new thing made! `POST /students` → new admission. ↯ POST should return 201, not 200!
+- **202 Accepted** — got your order, cooking later. Queued jobs, email sending.
+- **204 No Content** — done, nothing to show. Perfect after DELETE. Empty body!
+
+**Trick:** 2xx = "too good" • 201 = 2-0-WON a new row!
+
+### 3xx — "not here, go there →"
+- **301 Moved Permanently** — shop shifted forever, update your address book.
+- **302 Found** — temporarily at a different counter today.
+- **304 Not Modified** — "your saved copy is still fresh, use it!"
+- **307 Temporary Redirect** — like 302, but the method must stay the same.
+- **308 Permanent Redirect** — like 301, method preserved.
+
+**Trick:** 3 = flee! 301 permanent, 302 temporary
+
+### 4xx — "YOU messed up"
+- **400 Bad Request** — gibberish form. Broken JSON, missing fields.
+- **401 Unauthorized** — no ID card! Not logged in. (really: UN-authenticated) ↯
+- **403 Forbidden** — ID seen, still NO. Logged in ≠ allowed! ↯
+- **404 Not Found** — no such room. `GET /studnets` (typo!). The celebrity ★
+- **405 Method Not Allowed** — right door, wrong action.
+- **406 Not Acceptable** — "you'll only Accept: XML? I only cook JSON."
+- **408 Request Timeout** — you took too long; the waiter walked away.
+- **409 Conflict** — two people booked seat 14A. Duplicate email!
+- **410 Gone** — existed once, deleted forever. Stronger than 404.
+- **415 Unsupported Media Type** — a file type the server can't chew.
+- **422 Unprocessable Entity** — valid JSON, nonsense values: `"age": -5`.
+- **429 Too Many Requests** — "slow down!!" You hammered the API.
+
+**↯** 401 = who are you? 403 = I know you… still no! 404 = "4-Oh!-4got to check the URL"
+
+### 5xx — "MY fault, sorry"
+- **500 Internal Server Error** — kitchen on fire. An uncaught exception in your Node code. Check the server logs, ALWAYS.
+- **501 Not Implemented** — "we don't serve that dish yet." Method not built.
+- **502 Bad Gateway** — the middleman got garbage. Nginx is fine, but your Node app behind it crashed. ↯
+- **503 Service Unavailable** — "closed for maintenance, come later." Overloaded or deploying.
+- **504 Gateway Timeout** — the middleman waited… the kitchen never answered. Slow DB query behind a proxy.
+
+**The 5-line summary ✎**
+1xx → hold on
+2xx → here you go ✓
+3xx → go there →
+4xx → you messed up
+5xx → I messed up
+
+**Trick:** 5xx = "5erver's fault" — the user can't fix it!
+
+---
+
+## 11. REST Naming Rules ★
+
+| ✗ Wrong | ✓ Right |
+|---|---|
+| `GET /getStudents` | `GET /students` (the verb lives in the method!) |
+| `POST /createNewStudent` | `POST /students` |
+| `GET /student` (singular) | `GET /students` (always plural!) |
+| `GET /Students_List` | `GET /students` (lowercase, kebab-case) |
+| `POST /students/delete/99` | `DELETE /students/99` |
+| `GET /students/99/get-courses` | `GET /students/99/courses` (nesting = ownership) |
+
+**★ Golden rule:** URL = noun (plural) • method = verb
+
+---
+
+## 12. Versioning & Consistency
+
+**Versioning — never break old apps!**
+- `/api/v1/students` — old apps keep working
+- `/api/v2/students` — new shape ships here
+
+✎ Like textbook editions — old-edition students can still study!
+
+**Safe & idempotent — recap ↯**
+- Safe methods: `GET` (+ HEAD, OPTIONS) — window shopping: look, never touch
+- Idempotent: `GET`, `PUT`, `DELETE` — elevator button
+- NOT idempotent: `POST` — doorbell, every press counts!
+
+✎ Networks retry failed requests — retrying POST can double-charge a payment!
+
+**Consistency checklist ✎**
+- [ ] Plural nouns everywhere: `/students` `/courses` `/orders`
+- [ ] Lowercase + kebab-case: `/course-modules`
+- [ ] Filters in query: `/students?year=2&sort=name`
+- [ ] Version prefix: `/api/v1/…`
+- [ ] Right status codes: 201, 204, 404, 422…
+- [ ] Same JSON shape for every error
+
+---
+
+## 13. One Click, Full Journey ↯
+
+```mermaid
+flowchart LR
+    A["1. Browser<br/>types URL, hits ⏎"] --> B["2. DNS<br/>phonebook → IP"]
+    B --> C["3. Internet<br/>TCP + TLS, hops"]
+    C --> D["4. API Gate<br/>auth + rate limit"]
+    D --> E["5. Node Server<br/>Express matches route"]
+    E --> F["6. Controller<br/>validates<br/>(traffic police)"]
+    F --> G["7. Service<br/>business logic<br/>(chef)"]
+    G --> H["8. Database<br/>SELECT * FROM students"]
+    H --> I["9. JSON Returns<br/>200 OK + gzip"]
+    I --> J["10. Browser Paints ✓<br/>JSON → HTML, ~200 ms!"]
+```
+
+**One breath:** browser → DNS → internet → API → Node → controller → service → DB → JSON → browser
+
+**Errors by stop:**
+- DNS fails → "server not found"
+- Gate says no → 401 / 403 / 429
+- Controller rejects → 400 / 422
+- Service crashes → 500
+- DB slow → 504
+
+---
+
+### ✎ Quick Recap
+
+- An API is the safe middleman between a client and a database — you never touch the DB directly.
+- Every feature in every app is really just **CRUD**, mapped to `GET`, `POST`, `PUT`/`PATCH`, `DELETE`.
+- URLs should be **plural nouns**; methods carry the **verb**.
+- Status codes tell you exactly what happened: `2xx` good, `3xx` moved, `4xx` your mistake, `5xx` server's mistake.
+- Follow the naming + consistency rules so your API doesn't confuse the next dev (or you, in 3 months).
+
