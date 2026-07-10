@@ -747,7 +747,7 @@ flowchart LR
 ---
 ---
 
-# Day 3 of API Learning — REST APIs Explained My Way
+# Day 3 of API Learning — REST APIs & Browser Storage Explained My Way
 
 ## 1. What REST API Actually Does
 
@@ -807,8 +807,6 @@ And every response carries a status code telling you what happened:
 - **Resource** = the actual "thing" (a document, a user, a template)
 - **Endpoint** = a specific URL + verb combo that does one job, e.g. `POST /api/documents`
 
----
-
 ## 6. Request Flow (Flowchart)
 
 ```
@@ -856,8 +854,6 @@ And every response carries a status code telling you what happened:
         └───────────────────────────┘
 ```
 
----
-
 ## 7. Resources vs Actions
 
 Not everything in an API is "stored data." Some endpoints just perform a job and hand back a result, without saving a permanent row.
@@ -885,18 +881,151 @@ Not everything in an API is "stored data." Some endpoints just perform a job and
 - **Some endpoints skip authentication on purpose** — like a public share link. It uses a random unguessable code instead of a real internal ID, so nobody can just guess and access someone else's data by changing numbers.
 - **The verb decides the action, the URL decides the target.** That's the whole logic of REST in one line.
 
+## 9. Why Browser Storage Exists
+
+A website often needs to remember something about you — that you're logged in, that you prefer dark mode, or the item you left in your cart. Instead of asking the server every single time, the browser itself can hold onto small pieces of data on your computer.
+
+There are four main storage options a browser gives, and each one is meant for a different purpose. They differ in three things:
+
+1. How much data they can hold
+2. How long the data survives
+3. Whether that data automatically gets sent to the server
+
+## 10. Storage Decision Flowchart
+
+```
+                        START: Need to store some data?
+                                    |
+                                    v
+                  Does the server need this data automatically
+                  attached to every request (like login info)?
+                                    |
+                    ----------------------------------
+                    |                                |
+                   YES                               NO
+                    |                                |
+                    v                                v
+              Use COOKIES                Does this data need to survive
+          (auth tokens, sessions,        even after the browser is closed
+           "remember me")                and reopened later?
+                                                    |
+                                  --------------------------------
+                                  |                              |
+                                 YES                              NO
+                                  |                                |
+                                  v                                v
+                    Is it a large amount of data          Use SESSION STORAGE
+                    or does it need to store objects,     (temporary form data,
+                    files, or images (not just text)?     one-tab-only data)
+                                  |
+                  ------------------------------------
+                  |                                  |
+                 YES                                NO
+                  |                                  |
+                  v                                  v
+           Use INDEXEDDB                    Use LOCAL STORAGE
+     (offline documents, cached          (theme preference, saved
+      files, large datasets)              settings, language choice)
+```
+
+## 11. Cookies
+
+**Definition:** A cookie is a small piece of text data that the browser stores and automatically attaches to every request sent to the server it belongs to.
+
+Think of it like a visitor badge at a mall entrance. Once you're given the badge, every shop you walk into can glance at it and instantly know it's the same visitor, without you introducing yourself again.
+
+**Key properties:**
+- Very small size, roughly 4 KB
+- Automatically sent to the server with every single request
+- Can have an expiry date (for example, it self-deletes after 7 days)
+- Accessible by both the browser and the server
+
+**Real-life best use:** Staying logged into Gmail. When you sign in once, a cookie stores your session token, and every time you revisit Gmail, that cookie is silently sent along, so the server instantly recognizes you instead of asking you to log in again.
+
+## 12. Local Storage
+
+**Definition:** Local Storage is a browser-only storage space that keeps data permanently, until it is manually cleared, either by the code or by the user.
+
+Think of it as a drawer in your room. Whatever you place inside stays exactly where you left it, whether you check tomorrow, next week, or next month.
+
+**Key properties:**
+- Holds around 5 to 10 MB
+- Never expires automatically
+- Never gets sent to the server — it stays purely on the browser side
+- Can only store plain text (strings); objects must be converted using `JSON.stringify()` before saving and `JSON.parse()` after reading
+
+**Real-life best use:** YouTube remembering that you prefer dark mode. Once you switch the theme, YouTube saves that choice in Local Storage, so even after closing and reopening the browser weeks later, dark mode is still active.
+
+## 13. Session Storage
+
+**Definition:** Session Storage is browser storage that only lives for as long as that particular browser tab stays open. The moment the tab is closed, the data disappears completely.
+
+Think of it as a classroom whiteboard. Notes can be written during the class, but the moment the class ends, everything gets wiped clean.
+
+**Key properties:**
+- Holds around 5 MB
+- Exists only while the tab is open; closing the tab erases it instantly
+- Never sent to the server
+- Completely separate per tab — two tabs of the same website do not share this data
+
+**Real-life best use:** Filling out a long form online. If you accidentally refresh the page, your entered data can still be recovered from Session Storage. But if you close the tab entirely, that data is gone for good.
+
+## 14. IndexedDB
+
+**Definition:** IndexedDB is a browser-based database capable of storing large amounts of structured data, including actual files, images, and complete objects, not just plain text.
+
+Think of it as an entire library compared to Local Storage's single drawer. It's built to hold serious volumes of organized information.
+
+**Key properties:**
+- Can store hundreds of MB or more
+- Can directly store objects, files, images, and videos, unlike the string-only limitation of Cookies or Local Storage
+- Commonly used to make apps work offline
+
+**Real-life best use:** Google Docs saving your document locally so that if your internet connection drops, your work isn't lost, and it automatically syncs once you're back online. Spotify similarly uses IndexedDB to store downloaded songs for offline playback.
+
+## 15. Complete Comparison Table
+
+| Feature | Cookies | Local Storage | Session Storage | IndexedDB |
+|---|---|---|---|---|
+| Storage size | ~4 KB | 5–10 MB | ~5 MB | Hundreds of MB+ |
+| Sent to server automatically | Yes | No | No | No |
+| Expires | Yes (can set expiry) | No, stays forever | Yes, on tab close | No |
+| Can store large data | No | No | No | Yes |
+| Can store objects/files directly | No, text only | No, strings only | No, strings only | Yes |
+| Best real-life use | Login sessions, authentication | Theme, language, preferences | Temporary form data, per-tab data | Offline documents, cached media, large datasets |
+
+## 16. Real Websites and What They Use
+
+| Website | Storage Used | Reason |
+|---|---|---|
+| Gmail | Cookies | Keeps the user logged in across visits |
+| YouTube | Local Storage | Remembers volume, dark mode, and preferences |
+| Amazon | Cookies + Local Storage | Handles login, cart contents, and preferences |
+| Google Docs | IndexedDB | Saves documents locally to survive offline |
+| Spotify | IndexedDB | Caches downloaded songs for offline listening |
+| Google Maps | IndexedDB | Stores offline map data for areas without internet |
+
 ---
 
-## 9. Quick Recap Questions
+## Quick Recap
 
-**Q: What makes REST "stateless"?**
-Because the server treats every request as brand new — it doesn't hold on to memory of your previous calls, so you have to identify yourself (via token) every single time.
+**REST API basics:**
+- REST API = middleman between frontend and backend/database
+- Every resource has a unique address (URL)
+- Only 4 actions exist: GET (read), POST (create), PUT (update), DELETE (remove)
+- REST is stateless — server doesn't remember previous requests, so every request must identify itself
+- Data travels as JSON, and every response carries a status code (200, 201, 404, 500)
+- Resource = the "thing" itself; Endpoint = URL + verb combo that acts on it
+- Nested URLs show ownership; non-CRUD actions still use POST; some endpoints (like share links) skip auth on purpose
 
-**Q: What's the difference between a resource and an endpoint?**
-A resource is the object itself (a resume, a user). An endpoint is a specific URL + HTTP verb pair that performs one action on that resource.
+**Browser storage basics:**
+- **Cookies** → Visitor Badge → ~4 KB, auto-sent to server, expires, best for login/auth
+- **Local Storage** → Bedroom Drawer → 5–10 MB, never expires, not sent to server, best for saved preferences
+- **Session Storage** → Classroom Whiteboard → ~5 MB, wiped on tab close, not sent to server, best for temporary form data
+- **IndexedDB** → Library → hundreds of MB+, stores objects/files directly, best for offline apps and large data
 
-**Q: Why does the same URL sometimes read data and sometimes delete it?**
-Because in REST, the HTTP verb decides the action — the URL only identifies which resource you're targeting.
-
----
----
+**One-line memory hooks:**
+- Cookie = small + auto-sent + login
+- Local Storage = permanent + preferences
+- Session Storage = temporary + per-tab
+- IndexedDB = huge + offline + real files
