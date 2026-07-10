@@ -1,4 +1,4 @@
-# 📘 Learning API
+# 📘 Learning API Day 1.
 
 **Topic:** Understanding APIs, HTTP methods, status codes, fetch(), and authentication basics
 
@@ -744,3 +744,159 @@ flowchart LR
 - Status codes tell you exactly what happened: `2xx` good, `3xx` moved, `4xx` your mistake, `5xx` server's mistake.
 - Follow the naming + consistency rules so your API doesn't confuse the next dev (or you, in 3 months).
 
+---
+---
+
+# Day 3 of API Learning — REST APIs Explained My Way
+
+## 1. What REST API Actually Does
+
+Forget the textbook definition for a second. Here's the simplest way to picture it:
+
+You never directly touch a database. There's always a **middleman** standing between your app's screen and the server's storage. That middleman is the API. It takes your request, forwards it to the backend, waits for a reply, and hands that reply back to you.
+
+- **Frontend (Angular)** → what you see and click
+- **Backend (Express/Node)** → the logic that decides what to do
+- **Database (MySQL)** → where the actual data lives
+- **API** → the connector between all three
+
+## 2. Everything in the App Has an Address
+
+Every single item — a resume, a user account, a template — gets its own unique URL. That URL is basically an ID card for that item.
+
+`/api/documents/42` doesn't mean "documents" in general — it points to exactly ONE resume, the one numbered 42. It's like a house number on a street; there's only one house with that number.
+
+## 3. Only 4 Actions Exist in REST
+
+No matter how big or small the app is, you're limited to four core operations:
+
+| HTTP Verb | Action | Everyday Example |
+|---|---|---|
+| GET | Fetch/read data | Open and view your resume |
+| POST | Create new data | Add a brand-new resume |
+| PUT | Update existing data | Edit a section of your resume |
+| DELETE | Remove data | Delete a resume permanently |
+
+Important trick to remember: **the URL doesn't change, only the verb does.**
+
+`GET /documents/42` → reads resume 42
+`DELETE /documents/42` → deletes resume 42
+
+Same address, completely different outcome — just because of the verb used.
+
+## 4. REST is Stateless — and That's a Feature, Not a Bug
+
+Every time your app talks to the server, it has to prove who it is again (usually through a token). The server doesn't "remember" you from the last call.
+
+Sounds inconvenient, but it's actually what makes apps scalable — any server in a cluster of thousands can handle your request because none of them need to keep your history in memory.
+
+## 5. Data Travels as JSON
+
+Requests and responses are packaged in **JSON** format — basically key-value pairs, easy for both frontend and backend to parse.
+
+And every response carries a status code telling you what happened:
+
+| Code | Meaning |
+|---|---|
+| 200 | Success, here's your data |
+| 201 | Success, something new was created |
+| 404 | Couldn't find what you asked for |
+| 500 | Something broke on the server |
+
+**Two terms to lock in:**
+- **Resource** = the actual "thing" (a document, a user, a template)
+- **Endpoint** = a specific URL + verb combo that does one job, e.g. `POST /api/documents`
+
+---
+
+## 6. Request Flow (Flowchart)
+
+```
+                 USER ACTION
+             (clicks "Save Resume")
+                      |
+                      v
+        ┌───────────────────────────┐
+        │   FRONTEND (Angular)       │
+        │  builds request + JSON    │
+        └─────────────┬─────────────┘
+                      |
+              PUT /api/documents/42
+                      |
+                      v
+        ┌───────────────────────────┐
+        │  API LAYER (Express/Node)  │
+        │  - checks auth token       │
+        │  - validates request       │
+        └─────────────┬─────────────┘
+                      |
+                 SQL query
+                      |
+                      v
+        ┌───────────────────────────┐
+        │      DATABASE (MySQL)      │
+        │   reads / writes the row   │
+        └─────────────┬─────────────┘
+                      |
+               result rows back
+                      |
+                      v
+        ┌───────────────────────────┐
+        │  API LAYER (Express/Node)  │
+        │  wraps result in JSON +    │
+        │  attaches status code      │
+        └─────────────┬─────────────┘
+                      |
+              200 OK + JSON body
+                      |
+                      v
+        ┌───────────────────────────┐
+        │   FRONTEND (Angular)       │
+        │   updates screen for user  │
+        └───────────────────────────┘
+```
+
+---
+
+## 7. Resources vs Actions
+
+Not everything in an API is "stored data." Some endpoints just perform a job and hand back a result, without saving a permanent row.
+
+**Stored resources (actual data that sits in the database):**
+- User account
+- Document (resume/cover letter)
+- Section & section items
+- Version history
+- Template
+- Application (job tracking)
+- Share link
+
+**Action-only endpoints (compute something, don't necessarily save it):**
+- Auth (login/register)
+- AI writing (bullets, summary, rewrite)
+- ATS scoring
+- Tailoring to a job description
+- Export (PDF/DOCX generation)
+
+## 8. Patterns That Make REST APIs Predictable
+
+- **Nested URLs = ownership.** An item lives inside a section, which lives inside a document, so the path itself shows the hierarchy: `/documents/42/sections/3/items/7`
+- **Actions still use POST**, even if there's no permanent save happening — because POST generally means "process this and give me a result."
+- **Some endpoints skip authentication on purpose** — like a public share link. It uses a random unguessable code instead of a real internal ID, so nobody can just guess and access someone else's data by changing numbers.
+- **The verb decides the action, the URL decides the target.** That's the whole logic of REST in one line.
+
+---
+
+## 9. Quick Recap Questions
+
+**Q: What makes REST "stateless"?**
+Because the server treats every request as brand new — it doesn't hold on to memory of your previous calls, so you have to identify yourself (via token) every single time.
+
+**Q: What's the difference between a resource and an endpoint?**
+A resource is the object itself (a resume, a user). An endpoint is a specific URL + HTTP verb pair that performs one action on that resource.
+
+**Q: Why does the same URL sometimes read data and sometimes delete it?**
+Because in REST, the HTTP verb decides the action — the URL only identifies which resource you're targeting.
+
+---
+---
