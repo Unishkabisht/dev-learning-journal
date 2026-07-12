@@ -1,67 +1,73 @@
-# 📘 Learning API Day 1.
-
-**Topic:** Understanding APIs, HTTP methods, status codes, fetch(), and authentication basics
+# API, HTTP & REST Notes
 
 ---
 
-## 1. What is an API?
+# Day 1 – API Fundamentals
 
-**Definition:** An API (Application Programming Interface) is a set of rules that lets one piece of software talk to another. It defines how to ask for something, and what you'll get back.
+## What is an API?
 
-### The Restaurant Analogy
+Definition: An API (Application Programming Interface) is a set of rules that allows one piece of software to talk to another. It defines how a request should be made and what response will be returned. The client never accesses the server's database directly; the API sits between them and handles the communication.
 
-You sit at a restaurant table. You don't walk into the kitchen and cook your own food — you tell the waiter what you want. The waiter takes your order to the kitchen, waits, and brings your food back to you.
+Real-life example: When you use a weather app, the app does not calculate weather itself. It sends a request to a weather API, the API asks the server for the data, and the server sends back the temperature and forecast, which the API delivers to the app.
 
-- **You** = the client (asking for something)
-- **The waiter** = the API (carries the request and the response)
-- **The kitchen** = the server (actually prepares/processes the data)
+Roles involved:
 
-You never need to know how the kitchen cooks the dish. You only need to know how to order it. That's exactly what an API does between an app and a server.
-
----
-
-## 2. Client and Server
-
-**Client:** The one who starts the conversation — a browser, a mobile app, or JavaScript code. The client asks for something.
-
-**Server:** The one who listens, processes, and replies. The server never speaks first.
-
-**Golden Rule:** The client always speaks first. And every single request gets exactly **one** response — not zero, not two.
-
----
-
-## 3. Anatomy of a Request and a Response
-
-### A Request has 4 parts
-
-| Part | Definition |
+| Role | Description |
 |---|---|
-| **Method** | The action you want to perform (GET, POST, PUT, PATCH, DELETE) |
-| **URL** | The address of the resource you are asking for |
-| **Headers** | Extra information about the request, like metadata (content type, auth token) |
-| **Body** | The actual data being sent (used in POST, PUT, PATCH — usually not in GET) |
+| Client | The one who makes the request (browser, app, JavaScript code) |
+| API | The interface that carries the request and the response |
+| Server | The one who processes the request and prepares the response |
+| Database | Where the actual data is stored |
 
-### A Response has 3 parts
+---
 
-| Part | Definition |
+## Client–Server Architecture
+
+Definition: Client-server architecture is a model where the client sends requests and the server processes them and sends back responses. The client always initiates the communication; the server only replies.
+
+Rules:
+- The client always speaks first.
+- Every request gets exactly one response.
+- HTTP is stateless — the server does not remember previous requests. Each request must carry its own identity (through a cookie or token) if the app needs to recognize the same user again.
+
+Real-life example: Logging into an email account. Each time you open a new page in Gmail, your browser sends your session token again, because the server does not remember you from the last request on its own.
+
+```mermaid
+flowchart LR
+    A[Client - browser or app] -->|sends request| B[Server]
+    B -->|sends response| A
+```
+
+---
+
+## HTTP Request & Response
+
+Definition: HTTP (HyperText Transfer Protocol) is the protocol that defines how a client and a server exchange messages. Every interaction consists of one request from the client and one response from the server.
+
+### Structure of a Request
+
+| Part | Description |
 |---|---|
-| **Status Code** | A three-digit number telling you if the request succeeded or failed |
-| **Headers** | Metadata about the response |
-| **Body** | The actual data the server sends back |
+| Method | The action to be performed (GET, POST, PUT, PATCH, DELETE) |
+| URL | The address of the resource being requested |
+| Headers | Extra information about the request, such as content type or authorization |
+| Body | The data being sent (used with POST, PUT, PATCH; usually absent in GET) |
+
+### Structure of a Response
+
+| Part | Description |
+|---|---|
+| Status Code | A three-digit number indicating success or failure |
+| Headers | Metadata about the response |
+| Body | The actual data returned by the server |
+
+Real-life example: Submitting a login form sends a POST request with an email and password in the body. The server replies with a status code (200 if successful, 401 if the credentials are wrong) and a body containing the response data.
 
 ---
 
-## 4. Read the Status Code First
+## JSON
 
-**Definition:** The status code is the first and most trustworthy thing to check in a response. It tells you the real outcome before you even look at the data.
-
-**A body can lie, the status code doesn't.** A response body might look like normal data, but if the status code says `404` or `500`, the request actually failed. Always check the status code before trusting the body.
-
----
-
-## 5. JSON as the Data Format
-
-**Definition:** JSON (JavaScript Object Notation) is a lightweight, text-based format used to exchange data between client and server. It looks like a JS object, but it's actually just text.
+Definition: JSON (JavaScript Object Notation) is a lightweight, text-based format used to exchange data between a client and a server. It resembles a JavaScript object but is transmitted as plain text.
 
 ```json
 {
@@ -71,100 +77,103 @@ You never need to know how the kitchen cooks the dish. You only need to know how
 }
 ```
 
-| Method | Purpose | Definition |
-|---|---|---|
-| `response.json()` | Parsing | Converts JSON text received from the server into a usable JavaScript object |
-| `JSON.stringify()` | Sending | Converts a JavaScript object into JSON text so it can be sent to the server |
+| Method | Purpose |
+|---|---|
+| response.json() | Converts JSON text received from the server into a JavaScript object |
+| JSON.stringify() | Converts a JavaScript object into JSON text so it can be sent to the server |
 
-```
-JavaScript Object → JSON.stringify() → JSON Text → sent over network → Server
-Server → sends JSON text back → response.json() → JavaScript Object again
-```
+Real-life example: When a shopping app displays a product list, the server sends that list as JSON text. The app uses response.json() to turn it into an object it can actually read and display.
 
 ---
 
-## 6. The Five HTTP Methods
+## HTTP Methods (GET, POST, PUT, PATCH, DELETE)
 
-**Definition:** HTTP methods are verbs that describe what action you want to perform on a resource.
+Definition: HTTP methods are verbs that describe the action to be performed on a resource identified by a URL.
 
 | Method | Action | Definition |
 |---|---|---|
-| **GET** | Read | Ask the server for existing data, without changing anything |
-| **POST** | Create | Ask the server to create a new piece of data |
-| **PUT** | Replace | Ask the server to completely replace an existing resource |
-| **PATCH** | Update | Ask the server to update only part of a resource |
-| **DELETE** | Remove | Ask the server to delete a resource |
+| GET | Read | Requests existing data without changing anything |
+| POST | Create | Asks the server to create a new piece of data |
+| PUT | Replace | Asks the server to replace an existing resource entirely |
+| PATCH | Update | Asks the server to update only part of a resource |
+| DELETE | Remove | Asks the server to delete a resource |
+
+Real-life example: On an online store — viewing a product list is GET, placing a new order is POST, editing your entire saved address is PUT, changing only your phone number in that address is PATCH, and removing an item from the cart is DELETE.
 
 ---
 
-## 7. GET vs POST
+## GET vs POST
 
-**Definition:** GET sends its data as part of the URL itself (query parameters). POST sends its data hidden inside the request body.
+Definition: GET sends data as part of the URL (query parameters); POST sends data hidden inside the request body.
 
 | | GET | POST |
 |---|---|---|
-| **Where data goes** | In the URL (`?search=iphone16`) | In the body (hidden) |
-| **Use case** | Fetching/reading data | Creating new data |
-| **Safe to repeat?** | Yes | **No** |
+| Where data goes | In the URL, for example ?search=iphone16 | In the request body |
+| Use case | Fetching or reading data | Creating new data |
+| Safe to repeat | Yes | No |
 
-**Why POST is not safe to repeat:** An action is "safe to repeat" if doing it multiple times gives the same result as doing it once. GET is safe — asking for the same data again just shows you the same thing. **POST is not safe** — if you submit a signup form and refresh the page right after, the browser may resend that same POST, and you end up creating the account twice.
+Explanation: An action is safe to repeat if doing it multiple times produces the same result as doing it once. GET is safe because reading the same data again does not change anything. POST is not safe because if a signup form is submitted and the page is refreshed right after, the browser may resend that POST, creating the account twice.
 
 ---
 
-## 8. Status Code Families
+## HTTP Status Codes (Basics)
 
-**Definition:** Status codes are grouped into five families by their first digit, each representing a category of outcome.
+Definition: A status code is a three-digit number returned in every HTTP response that tells the client the outcome of its request. Status codes are grouped into five families by their first digit.
 
 | Family | Meaning |
 |---|---|
-| **1xx** | Informational — request received, still processing |
-| **2xx** | Success — request completed successfully |
-| **3xx** | Redirection — resource has moved, follow the new location |
-| **4xx** | Client Error — something is wrong with the request you sent |
-| **5xx** | Server Error — something broke on the server's side |
+| 1xx | Informational — request received, still processing |
+| 2xx | Success — request completed successfully |
+| 3xx | Redirection — resource has moved |
+| 4xx | Client Error — something is wrong with the request sent |
+| 5xx | Server Error — something broke on the server |
 
-### Everyday codes
+Common codes:
 
-| Code | Name | Definition |
+| Code | Name | Meaning |
 |---|---|---|
-| `200` | OK | Request succeeded, here's your data |
-| `201` | Created | A new resource was successfully created |
-| `204` | No Content | Request succeeded, nothing to send back |
-| `400` | Bad Request | The request was malformed or missing data |
-| `401` | Unauthorized | You're not logged in / no valid credentials |
-| `403` | Forbidden | You're identified, but don't have permission |
-| `404` | Not Found | The resource doesn't exist |
-| `429` | Too Many Requests | You're being rate limited |
-| `500` | Internal Server Error | Something broke on the server |
+| 200 | OK | Request succeeded |
+| 201 | Created | A new resource was created |
+| 204 | No Content | Request succeeded, nothing to return |
+| 400 | Bad Request | The request was malformed or missing data |
+| 401 | Unauthorized | Not logged in / no valid credentials |
+| 403 | Forbidden | Identified, but not permitted |
+| 404 | Not Found | The resource does not exist |
+| 429 | Too Many Requests | Rate limit exceeded |
+| 500 | Internal Server Error | Something broke on the server |
+
+Rule: The status code should always be checked first. A response body can look like valid data even when the request actually failed, but the status code tells the real outcome.
 
 ---
 
-## 9. REST URL Design — URLs are Nouns, Methods are Verbs
+## REST URL Design
 
-**Definition:** REST is a design style where the URL identifies *what thing* you're working with (a noun), and the HTTP method identifies *what action* you want to perform (a verb).
+Definition: REST is a design style in which the URL identifies what resource (noun) is being worked with, and the HTTP method identifies what action (verb) is being performed on it.
 
 ```
-✅ Correct:
-GET    /mobiles          → read all mobiles
-GET    /mobiles/5        → read mobile with id 5
-POST   /mobiles          → add a new mobile
-PUT    /mobiles/5        → replace mobile 5 entirely
-PATCH  /mobiles/5        → update part of mobile 5
-DELETE /mobiles/5        → delete mobile 5
+Correct:
+GET    /mobiles          read all mobiles
+GET    /mobiles/5        read mobile with id 5
+POST   /mobiles          add a new mobile
+PUT    /mobiles/5        replace mobile 5 entirely
+PATCH  /mobiles/5        update part of mobile 5
+DELETE /mobiles/5        delete mobile 5
 
-❌ Wrong (verb baked into the URL):
+Incorrect (verb baked into the URL):
 GET /getAllMobiles
 POST /createNewMobile
 POST /deleteMobile5
 ```
 
+Real-life example: A well-designed college API uses GET /students/99 to view a student, not GET /getStudent99. The URL names the resource; the method decides the action.
+
 ---
 
-## 10. fetch() — .then() vs async/await
+## fetch() API (.then(), async/await, sending requests, parsing responses)
 
-**Definition:** `fetch()` is a built-in JavaScript function used to make HTTP requests from the browser to a server.
+Definition: fetch() is a built-in JavaScript function used to make HTTP requests from the browser to a server.
 
-### Style 1: `.then()` chaining
+### Style 1: .then() chaining
 
 ```js
 fetch("https://resumeflow-api.example.com/login", {
@@ -180,7 +189,7 @@ fetch("https://resumeflow-api.example.com/login", {
   .catch(err => console.log("Error:", err));
 ```
 
-### Style 2: async/await (cleaner)
+### Style 2: async/await
 
 ```js
 async function loginUser() {
@@ -197,18 +206,15 @@ async function loginUser() {
 }
 ```
 
-### Why you await twice
+### Why fetch is awaited twice
 
-**Definition:** Both `fetch()` and `.json()` are asynchronous — they each take time and return a Promise, so each needs its own `await`.
+Both fetch() and .json() are asynchronous — each takes time and returns a Promise, so each needs its own await.
+1. First await — waits for the request to reach the server and the response to start arriving.
+2. Second await — waits for the response body to be fully read and converted from JSON text into a JavaScript object.
 
-1. **First await** — waits for the request to reach the server and the response to start arriving
-2. **Second await** — waits for the response body to be fully read and converted from JSON text into a JS object
+### Sending data with fetch()
 
----
-
-## 11. Sending Data with fetch()
-
-**Definition:** To send data, you pass a second argument to `fetch()` — an object with `method`, `headers`, and `body`.
+To send data, a second argument is passed to fetch() containing method, headers, and body.
 
 ```js
 async function createAccount() {
@@ -228,17 +234,17 @@ async function createAccount() {
 }
 ```
 
-| Field | Definition |
+| Field | Meaning |
 |---|---|
-| `method` | Which HTTP verb to use |
-| `headers` | Tells the server what kind of data you're sending |
-| `body` | The actual data, converted to JSON text using `JSON.stringify()` |
+| method | Which HTTP verb to use |
+| headers | Tells the server what kind of data is being sent |
+| body | The actual data, converted to JSON text using JSON.stringify() |
 
 ---
 
-## 12. Error Handling with fetch()
+## Error Handling with fetch()
 
-**Definition:** `fetch()` only rejects (throws an error) on a **network failure** — like no internet or the server being unreachable. It does **NOT** throw on `404` or `500`. If the server responds with an error status, `fetch()` still treats it as a technically successful request. You have to check this yourself.
+Definition: fetch() only rejects (throws an error) on a network failure, such as no internet connection or an unreachable server. It does not throw an error for a 404 or 500 response — the server responding with an error status is still treated as a technically successful fetch. This must be checked manually.
 
 ```js
 async function loginUser() {
@@ -264,17 +270,17 @@ async function loginUser() {
 }
 ```
 
-**`res.ok`** is `true` for status codes 200–299, and `false` for anything else.
+res.ok is true for status codes 200 to 299, and false for anything else.
 
 ---
 
-## 13. Auth Basics — API Keys, Bearer Tokens, and .env
+## Authentication Basics (API Keys, Bearer Tokens, .env)
 
-**Definition:** Authentication is proving *who you are* to a server before it lets you access protected data.
+Definition: Authentication is the process of proving identity to a server before it allows access to protected data.
 
 ### API Keys
 
-A unique string identifying who's making the request, usually sent as a header.
+A unique string identifying who is making the request, usually sent as a header.
 
 ```js
 fetch("https://api.example.com/data", {
@@ -286,7 +292,7 @@ fetch("https://api.example.com/data", {
 
 ### Bearer Tokens
 
-A token sent in the `Authorization` header, proving the client already logged in. "Bearer" means whoever is holding this token is trusted.
+A token sent in the Authorization header, proving that the client has already logged in. "Bearer" means whoever holds this token is trusted.
 
 ```js
 fetch("https://resumeflow-api.example.com/profile", {
@@ -298,7 +304,7 @@ fetch("https://resumeflow-api.example.com/profile", {
 
 ### Keeping keys in .env
 
-**Definition:** A `.env` file stores secret values (keys, passwords, tokens) outside your actual code, so they're never accidentally exposed.
+Definition: A .env file stores secret values, such as keys, passwords, and tokens, outside the actual code so they are not accidentally exposed.
 
 ```
 # .env
@@ -310,18 +316,15 @@ API_KEY=abc123secretkey
 const apiKey = process.env.API_KEY;
 ```
 
-### The Golden Rule
-
-> **Secret keys never go in frontend code or git.**
-
-- **Never in frontend code** — anything in browser JS is visible to anyone who opens DevTools.
-- **Never in git** — if a key gets committed and pushed, it stays in commit history forever, even after deleting it later. Always add `.env` to `.gitignore`.
+Rule: Secret keys should never go into frontend code or into git.
+- Never in frontend code — anything in browser JavaScript is visible to anyone who opens DevTools.
+- Never in git — if a key is committed and pushed, it remains in commit history forever even after deletion. .env should always be added to .gitignore.
 
 ---
 
-## 14. The Other Side — Express
+## Introduction to Express (Creating Basic APIs)
 
-**Definition:** Express is a Node.js framework used to build servers — this is the code that *receives* the fetch requests sent above.
+Definition: Express is a Node.js framework used to build servers — this is the code that receives the fetch requests sent from the client.
 
 ```js
 const express = require("express");
@@ -347,9 +350,9 @@ app.listen(3000, () => console.log("Server running on port 3000"));
 
 ---
 
-## 15. Live Demo — PokeAPI in the Console
+## Live API Demo (PokeAPI)
 
-Tried this directly in the browser console to see everything together — real URL, GET method, checking `res.ok`, then parsing with `.json()`.
+Demonstration of a real, public API used directly in the browser console — a GET request, checking res.ok, then parsing with .json().
 
 ```js
 async function getPokemon(name) {
@@ -367,665 +370,382 @@ async function getPokemon(name) {
 getPokemon("pikachu");
 ```
 
-Output in console:
+Console output:
 ```
 pikachu 4 60
 ```
 
 ---
----
 
-# Day 2 — APIs & Backend Basics
+# Day 2 – REST APIs & Backend
 
-> Node.js · Class Notes
-> ★ = exam important &nbsp;&nbsp; ↯ = interview favourite &nbsp;&nbsp; ✎ = note-worthy &nbsp;&nbsp; ✗ = common mistake
+## REST API Architecture & Request Flow
 
----
+Definition: REST (Representational State Transfer) is an architectural style for designing APIs where every piece of data is treated as a resource with its own URL, and standard HTTP methods are used to act on it.
 
-## 1. What is an API?
-
-**Definition:** An **API (Application Programming Interface)** is a middleman that allows two separate programs to talk to each other, without the client ever needing to touch the database directly.
-
-**Restaurant analogy:**
-- **You (the customer)** place an order — this is the client making a request.
-- **The waiter (the API)** carries your order to the kitchen and later brings your food back.
-- **The kitchen (the server)** does the actual work of preparing your order.
-- **The pantry (the database)** is where all the raw data/ingredients are stored.
-
-★ You never walk into the kitchen yourself — the waiter (API) protects it. A client never touches the database directly; it always goes through the API.
+Request flow: Client sends a request through the API, the API routes it to the Server, the Server queries the Database, and the data flows back up as a JSON response.
 
 ```mermaid
 flowchart LR
-    A["YOU (Customer)<br/>'1 paneer pizza'"] -->|request| B["WAITER = API<br/>carries messages both ways"]
-    B -->|routes it| C["KITCHEN = SERVER<br/>does the work"]
-    C -->|query| D["PANTRY = DB<br/>stores everything"]
-    D -->|food comes back| C
-    C -->|response = JSON| B
-    B -->|response| A
+    Client --> API --> Server --> Database
+    Database -.JSON response.-> Server -.-> API -.-> Client
 ```
 
----
-
-## 2. The Round Trip
-
-**Client → API → Server → Database → data flows back up as JSON**
-
-```mermaid
-flowchart LR
-    Client["CLIENT"] --> API["API"] --> Server["SERVER"] --> DB["DATABASE"]
-    DB -.->|JSON response| Server -.-> API -.-> Client
-```
-
-✎ This exact round trip happens for **every tap you make in any app**.
+Real-life example: Opening Instagram's feed sends a request through the Feed API, which asks the server, which pulls the posts from the database, and the same posts return as JSON to render on screen. This same round trip happens for every action taken in any app.
 
 ---
 
-## 3. APIs Around You (Real-World Examples)
+## Resources & CRUD Operations
 
-| App | What the API does |
-|---|---|
-| Google Maps | App asks Maps API — "where am I? fastest route?" |
-| Instagram | Feed API fetches posts; like button = `POST /likes` |
-| WhatsApp | Message API delivers your text + the ✓✓ receipts |
-| YouTube | Video API sends the list, another streams the video |
-| Paytm / UPI | UPI = APIs between banks! scan → pay → bank APIs settle it |
-| Spotify | Search API finds the song; play = stream API |
-| Netflix | Recommendation API decides your homepage rows |
-| Weather App | `GET api.weather.com/pune` → `{ "temp": 31 }` |
+Definition: A resource is any noun the application deals with, such as Student, Product, Order, or Document. In REST, every resource has its own URL.
 
-✎ You use 100s of APIs before breakfast — without knowing!
+- All students: /students
+- One student, roll 99: /students/99
+- Their courses (nested resource): /students/99/courses
 
----
-
-## 4. Resources — the "Things" ★
-
-**Definition:** A **resource** is any *noun* your app cares about: Student, Teacher, Product, Employee, Order, Book, Customer, Course, Payment…
-
-✎ If you can put "a / an / the" before it → it can be a resource.
-
-In REST, a resource is a noun with its own URL:
-- All students → `/students`
-- ONE student, roll 99 → `/students/99`
-- Their courses → `/students/99/courses`
-
-**↯ Golden rule:** Nouns live in the URL, verbs live in the method — never `/getStudents`!
-> URL says WHICH thing. Method says WHAT to do.
-
----
-
-## 5. CRUD — Only 4 Things Ever Happen to Data ★
-
-**Definition:** **CRUD** = **Create, Read, Update, Delete** — the only four operations that ever happen to stored data.
+Definition of CRUD: CRUD stands for Create, Read, Update, Delete — the only four operations that ever happen to stored data.
 
 | CRUD | HTTP | SQL | Example |
 |---|---|---|---|
-| Create | `POST` | `INSERT` | `POST /students` — new admission |
-| Read | `GET` | `SELECT` | `GET /students/99` |
-| Update | `PUT` / `PATCH` | `UPDATE` | `PATCH /students/99` — fix marks |
-| Delete | `DELETE` | `DELETE` | `DELETE /students/99` — TC issued! |
+| Create | POST | INSERT | POST /students — new admission |
+| Read | GET | SELECT | GET /students/99 |
+| Update | PUT / PATCH | UPDATE | PATCH /students/99 — fix marks |
+| Delete | DELETE | DELETE | DELETE /students/99 — record removed |
 
-★ EVERY app — Instagram to ISRO — is just CRUD on resources, dressed up nicely.
-
-**Memory trick:** *Create Posts — Read Gets — Update Puts — Delete Deletes*
-
-### CRUD Everywhere
-
-- **College:** C — admit a student · R — view student list · U — update marks · D — remove student
-- **Library:** C — add new book · R — search catalogue · U — mark "issued" · D — remove torn book
-- **Hospital:** C — register patient · R — read reports · U — update prescription · D — discharge record
-- **Amazon:** C — place order · R — view orders · U — change address · D — cancel order
-- **Instagram:** C — new post · R — scroll feed · U — edit caption · D — delete post
+Real-life example: An Amazon order goes through the same four operations — placing an order (Create), viewing past orders (Read), changing the delivery address (Update), and cancelling the order (Delete).
 
 ---
 
-## 6. The Five HTTP Methods, Explained
+## Deep Dive into HTTP Methods (Safe & Idempotent)
 
-### `GET` — "GIVE me data"
+Definition: A method is safe if it never changes data on the server. A method is idempotent if calling it multiple times produces the same result as calling it once.
 
-**Definition:** Fetch data. Never changes anything!
+### GET
+Definition: Fetches data, never changes anything.
+Real-life example: Reading a library book — you look at it, you do not write in it.
+Common mistakes: sending a body with GET; using GET to change data.
+Response code: 200 OK.
 
-- **Analogy:** Reading a library book — look, don't write in it.
-- **When:** Lists, details, search results, feeds.
-- ✗ **Mistakes:** Sending a body with `GET`; using `GET` to change data (crawlers will click your "delete" links!)
-- **Response:** `200 OK`
+### POST
+Definition: Creates a new resource; the server assigns the id.
+Real-life example: Dropping a filled admission form into a college's submission box — every form dropped creates a new admission record.
+Common mistakes: sending a POST to a URL with an id already in it (e.g. /students/99) to create a record; forgetting Content-Type; assuming POST is safe to repeat.
+Response code: 201 Created.
 
-**Trick:** GET = GIVE
+### PUT
+Definition: Replaces the resource entirely with what is sent.
+Real-life example: Swapping an old SIM card for a new one — the old one is completely gone.
+Common mistake: sending only one field with PUT, which causes every other field to become empty or null.
+Idempotent: yes — sending the same body ten times gives the same result.
 
-### `POST` — "PUSH something new"
+### PATCH
+Definition: Updates only some fields, leaving the rest untouched.
+Real-life example: Repairing a puncture in a tyre — only the hole is patched, the rest of the tyre stays as it was.
+Common mistakes: using PUT when PATCH was meant, which wipes other fields; assuming PATCH is always idempotent.
 
-**Definition:** Create a NEW resource. The server assigns the id.
+### DELETE
+Definition: Removes the resource at that URL.
+Real-life example: Shredding one specific file from a filing cabinet.
+Common mistakes: calling DELETE on a collection URL such as /students instead of a specific id, which deletes everything; missing an authorization check.
+Idempotent: yes — deleting twice still leaves it deleted; the second call simply returns 404.
 
-- **Analogy:** Dropping a filled admission form in the college box.
-- **When:** Signup, new order, new post, send message.
-- URL used is the **collection**, e.g. `/students` — no id yet!
-- ✗ **Mistakes:** POSTing to `/students/99` to create; forgetting `Content-Type`; expecting POST to be idempotent (2 clicks = 2 orders!)
-- **Response:** `201 Created` (not 200!)
+### Method Cheat Table
 
-**Trick:** POST = POSTbox — new letter every time ✉
-
-### `PUT` — "REPLACE the whole thing"
-
-**Definition:** Replace the resource ENTIRELY with what you send.
-
-- **Analogy:** Swapping the whole SIM card — old one is gone.
-- **When:** "Save profile" forms that send every field.
-- ✗ **Mistake:** Sending only 1 field with PUT — the rest become empty/null! (that job is PATCH's)
-- **Idempotent ✓** — PUT the same body 10 times → same result. Safe to retry!
-
-**Trick:** PUT = PUT a new one in its place ↺
-
-### `PATCH` — "Fix just this PART"
-
-**Definition:** Update SOME fields, leave the rest untouched.
-
-- **Analogy:** Puncture repair — patch the hole, keep the tyre.
-- **When:** Change password only, edit caption, mark as read.
-- ✗ **Mistakes:** Using PUT when you mean PATCH (wipes fields!); assuming PATCH is always idempotent (usually yes, not guaranteed).
-
-**↯ PUT vs PATCH:** PUT → repaint the whole wall. PATCH → touch up one spot.
-
-**Trick:** PATCH = a patch on jeans ✂
-
-### `DELETE` — "DESTROY it"
-
-**Definition:** Remove the resource at that URL.
-
-- **Analogy:** Shredding one file from the cabinet.
-- **When:** Delete post, cancel booking, remove cart item.
-- Usually **no body** at all.
-- ✗ **Mistakes:** `DELETE /students` (boom — whole collection!); no auth check; returning 200 + body when 204 fits better.
-- **Idempotent ✓** — delete twice → still gone. 2nd call just returns 404.
-
-**Trick:** DELETE = DESTROY
-
----
-
-## 7. Method Cheat Table ★
-
-**safe** = never changes data · **idempotent** = repeat → same result
-
-| Method | Safe? | Idempotent? | Body? | Success Code |
+| Method | Safe | Idempotent | Body | Success Code |
 |---|---|---|---|---|
-| `GET` | ✓ | ✓ | ✗ | 200 |
-| `POST` | ✗ | ✗ | ✓ | 201 |
-| `PUT` | ✗ | ✓ | ✓ | 200 |
-| `PATCH` | ✗ | ~usually | ✓ | 200 |
-| `DELETE` | ✗ | ✓ | rare | 204 |
-
-**↯** idempotent = lift button — press 5× → same floor. POST = doorbell — press 5× → rings 5×!
+| GET | Yes | Yes | No | 200 |
+| POST | No | No | Yes | 201 |
+| PUT | No | Yes | Yes | 200 |
+| PATCH | No | Usually | Yes | 200 |
+| DELETE | No | Yes | Rarely | 204 |
 
 ---
 
-## 8. The HTTP Request — Inside the Envelope
+## HTTP Headers
 
-A request has 4 parts:
-
-```mermaid
-flowchart TD
-    A["1. Start Line<br/>POST /students HTTP/1.1<br/><i>method + URL + version</i>"] --> B["2. Headers<br/>Host, Content-Type,<br/>Authorization, Cookie<br/><i>labels on the envelope</i>"]
-    B --> C["3. Blank Line<br/><i>separates headers from body</i>"]
-    C --> D["4. Body<br/>{ 'name':'Aman','course':'BCA' }<br/><i>the parcel inside</i>"]
-```
-
-★ GET & DELETE usually have NO body — just the envelope.
-
-### Headers to Know ↯
+Definition: Headers are key-value pairs sent along with a request or response that carry metadata — extra information that is not part of the main data itself.
 
 | Header | Meaning |
 |---|---|
-| `Content-Type` | "My body is JSON" → `application/json` — how should the server read this? |
-| `Accept` | "Please reply in JSON" — what the client wants back |
-| `Authorization` | The ID card → `Bearer <JWT token>` — who is asking? |
-| `Cookie` | Small notes the server gave you earlier, returned every time |
-| `Host` | Which website on this server — one IP, many sites! |
-| `User-Agent` | "I am Chrome on Windows" — who's knocking |
+| Content-Type | Tells the server the format of the data being sent, for example application/json |
+| Accept | Tells the server what format the client wants back |
+| Authorization | Carries identity information, for example Bearer <JWT token> |
+| Cookie | Small pieces of data the server gave earlier, sent back with every request |
+| Host | Identifies which website is being requested on a server hosting multiple sites |
+| User-Agent | Identifies the client software making the request, for example a browser and operating system |
 
-✗ **Classic bug:** POST JSON without `Content-Type` → `req.body` = undefined!
+Real-life example: A single POST request without a Content-Type header is a common cause of bugs — the server cannot tell that the body is JSON, so req.body comes back as undefined on the server side.
 
-> Content-Type = what I'm SENDING · Accept = what I want BACK
-
----
-
-## 9. The HTTP Response — The Reply Packet
-
-1. **Status line** — `HTTP/1.1 200 OK` → version + code + reason
-2. **Headers** — `Content-Type`, `Content-Length`, `Set-Cookie`, `Cache-Control`
-3. **Body** — the actual data (JSON!)
-
-**Why JSON? ★**
-- JavaScript Object Notation — Node speaks it natively
-- Human-readable, machine-parseable
-- Lighter than XML: `<name>Riya</name>` → `"name":"Riya"`
-- Every language can parse it
-
-**Read a response in 3 looks:** 1. status code → did it work? 2. `Content-Type` → what came back? 3. body → the goods
+Rule: Content-Type describes what is being sent. Accept describes what is wanted back.
 
 ---
 
-## 10. Status Codes — The Server's Mood ★
+## HTTP Status Codes (Detailed)
 
-**Rhyme:** 1 wait • 2 great • 3 relocate • 4 YOUR mistake • 5 server's fate
+Definition: Beyond the basic five families, specific codes communicate precise outcomes for a request.
 
-```mermaid
-flowchart TD
-    S["HTTP Status Codes"] --> A["1xx<br/>hold on…<br/>informational"]
-    S --> B["2xx<br/>here you go ✓<br/>success"]
-    S --> C["3xx<br/>go there →<br/>redirection"]
-    S --> D["4xx<br/>YOUR fault<br/>client error"]
-    S --> E["5xx<br/>MY fault<br/>server error"]
-```
-
-### 1xx — "hold on"
-- **100 Continue** — "go ahead, send the rest." Used before big uploads.
-- **101 Switching Protocols** — "let's change languages!" HTTP → WebSocket upgrade.
-
-### 2xx — "here you go ✓"
-- **200 OK** — done, here it is. `GET /students` → list.
-- **201 Created** — new thing made! `POST /students` → new admission. ↯ POST should return 201, not 200!
-- **202 Accepted** — got your order, cooking later. Queued jobs, email sending.
-- **204 No Content** — done, nothing to show. Perfect after DELETE. Empty body!
-
-**Trick:** 2xx = "too good" • 201 = 2-0-WON a new row!
-
-### 3xx — "not here, go there →"
-- **301 Moved Permanently** — shop shifted forever, update your address book.
-- **302 Found** — temporarily at a different counter today.
-- **304 Not Modified** — "your saved copy is still fresh, use it!"
-- **307 Temporary Redirect** — like 302, but the method must stay the same.
-- **308 Permanent Redirect** — like 301, method preserved.
-
-**Trick:** 3 = flee! 301 permanent, 302 temporary
-
-### 4xx — "YOU messed up"
-- **400 Bad Request** — gibberish form. Broken JSON, missing fields.
-- **401 Unauthorized** — no ID card! Not logged in. (really: UN-authenticated) ↯
-- **403 Forbidden** — ID seen, still NO. Logged in ≠ allowed! ↯
-- **404 Not Found** — no such room. `GET /studnets` (typo!). The celebrity ★
-- **405 Method Not Allowed** — right door, wrong action.
-- **406 Not Acceptable** — "you'll only Accept: XML? I only cook JSON."
-- **408 Request Timeout** — you took too long; the waiter walked away.
-- **409 Conflict** — two people booked seat 14A. Duplicate email!
-- **410 Gone** — existed once, deleted forever. Stronger than 404.
-- **415 Unsupported Media Type** — a file type the server can't chew.
-- **422 Unprocessable Entity** — valid JSON, nonsense values: `"age": -5`.
-- **429 Too Many Requests** — "slow down!!" You hammered the API.
-
-**↯** 401 = who are you? 403 = I know you… still no! 404 = "4-Oh!-4got to check the URL"
-
-### 5xx — "MY fault, sorry"
-- **500 Internal Server Error** — kitchen on fire. An uncaught exception in your Node code. Check the server logs, ALWAYS.
-- **501 Not Implemented** — "we don't serve that dish yet." Method not built.
-- **502 Bad Gateway** — the middleman got garbage. Nginx is fine, but your Node app behind it crashed. ↯
-- **503 Service Unavailable** — "closed for maintenance, come later." Overloaded or deploying.
-- **504 Gateway Timeout** — the middleman waited… the kitchen never answered. Slow DB query behind a proxy.
-
-**The 5-line summary ✎**
-1xx → hold on
-2xx → here you go ✓
-3xx → go there →
-4xx → you messed up
-5xx → I messed up
-
-**Trick:** 5xx = "5erver's fault" — the user can't fix it!
-
----
-
-## 11. REST Naming Rules ★
-
-| ✗ Wrong | ✓ Right |
-|---|---|
-| `GET /getStudents` | `GET /students` (the verb lives in the method!) |
-| `POST /createNewStudent` | `POST /students` |
-| `GET /student` (singular) | `GET /students` (always plural!) |
-| `GET /Students_List` | `GET /students` (lowercase, kebab-case) |
-| `POST /students/delete/99` | `DELETE /students/99` |
-| `GET /students/99/get-courses` | `GET /students/99/courses` (nesting = ownership) |
-
-**★ Golden rule:** URL = noun (plural) • method = verb
-
----
-
-## 12. Versioning & Consistency
-
-**Versioning — never break old apps!**
-- `/api/v1/students` — old apps keep working
-- `/api/v2/students` — new shape ships here
-
-✎ Like textbook editions — old-edition students can still study!
-
-**Safe & idempotent — recap ↯**
-- Safe methods: `GET` (+ HEAD, OPTIONS) — window shopping: look, never touch
-- Idempotent: `GET`, `PUT`, `DELETE` — elevator button
-- NOT idempotent: `POST` — doorbell, every press counts!
-
-✎ Networks retry failed requests — retrying POST can double-charge a payment!
-
-**Consistency checklist ✎**
-- [ ] Plural nouns everywhere: `/students` `/courses` `/orders`
-- [ ] Lowercase + kebab-case: `/course-modules`
-- [ ] Filters in query: `/students?year=2&sort=name`
-- [ ] Version prefix: `/api/v1/…`
-- [ ] Right status codes: 201, 204, 404, 422…
-- [ ] Same JSON shape for every error
-
----
-
-## 13. One Click, Full Journey ↯
-
-```mermaid
-flowchart LR
-    A["1. Browser<br/>types URL, hits ⏎"] --> B["2. DNS<br/>phonebook → IP"]
-    B --> C["3. Internet<br/>TCP + TLS, hops"]
-    C --> D["4. API Gate<br/>auth + rate limit"]
-    D --> E["5. Node Server<br/>Express matches route"]
-    E --> F["6. Controller<br/>validates<br/>(traffic police)"]
-    F --> G["7. Service<br/>business logic<br/>(chef)"]
-    G --> H["8. Database<br/>SELECT * FROM students"]
-    H --> I["9. JSON Returns<br/>200 OK + gzip"]
-    I --> J["10. Browser Paints ✓<br/>JSON → HTML, ~200 ms!"]
-```
-
-**One breath:** browser → DNS → internet → API → Node → controller → service → DB → JSON → browser
-
-**Errors by stop:**
-- DNS fails → "server not found"
-- Gate says no → 401 / 403 / 429
-- Controller rejects → 400 / 422
-- Service crashes → 500
-- DB slow → 504
-
----
-
-### ✎ Quick Recap
-
-- An API is the safe middleman between a client and a database — you never touch the DB directly.
-- Every feature in every app is really just **CRUD**, mapped to `GET`, `POST`, `PUT`/`PATCH`, `DELETE`.
-- URLs should be **plural nouns**; methods carry the **verb**.
-- Status codes tell you exactly what happened: `2xx` good, `3xx` moved, `4xx` your mistake, `5xx` server's mistake.
-- Follow the naming + consistency rules so your API doesn't confuse the next dev (or you, in 3 months).
-
----
----
-
-# Day 3 of API Learning — REST APIs & Browser Storage Explained My Way
-
-## 1. What REST API Actually Does
-
-Forget the textbook definition for a second. Here's the simplest way to picture it:
-
-You never directly touch a database. There's always a **middleman** standing between your app's screen and the server's storage. That middleman is the API. It takes your request, forwards it to the backend, waits for a reply, and hands that reply back to you.
-
-- **Frontend (Angular)** → what you see and click
-- **Backend (Express/Node)** → the logic that decides what to do
-- **Database (MySQL)** → where the actual data lives
-- **API** → the connector between all three
-
-## 2. Everything in the App Has an Address
-
-Every single item — a resume, a user account, a template — gets its own unique URL. That URL is basically an ID card for that item.
-
-`/api/documents/42` doesn't mean "documents" in general — it points to exactly ONE resume, the one numbered 42. It's like a house number on a street; there's only one house with that number.
-
-## 3. Only 4 Actions Exist in REST
-
-No matter how big or small the app is, you're limited to four core operations:
-
-| HTTP Verb | Action | Everyday Example |
-|---|---|---|
-| GET | Fetch/read data | Open and view your resume |
-| POST | Create new data | Add a brand-new resume |
-| PUT | Update existing data | Edit a section of your resume |
-| DELETE | Remove data | Delete a resume permanently |
-
-Important trick to remember: **the URL doesn't change, only the verb does.**
-
-`GET /documents/42` → reads resume 42
-`DELETE /documents/42` → deletes resume 42
-
-Same address, completely different outcome — just because of the verb used.
-
-## 4. REST is Stateless — and That's a Feature, Not a Bug
-
-Every time your app talks to the server, it has to prove who it is again (usually through a token). The server doesn't "remember" you from the last call.
-
-Sounds inconvenient, but it's actually what makes apps scalable — any server in a cluster of thousands can handle your request because none of them need to keep your history in memory.
-
-## 5. Data Travels as JSON
-
-Requests and responses are packaged in **JSON** format — basically key-value pairs, easy for both frontend and backend to parse.
-
-And every response carries a status code telling you what happened:
+### 1xx and 2xx
 
 | Code | Meaning |
 |---|---|
-| 200 | Success, here's your data |
-| 201 | Success, something new was created |
-| 404 | Couldn't find what you asked for |
-| 500 | Something broke on the server |
+| 100 Continue | Server has received the request headers, client should proceed to send the body |
+| 101 Switching Protocols | The connection is being upgraded, for example from HTTP to WebSocket |
+| 200 OK | Request succeeded and data is returned |
+| 201 Created | A new resource was successfully created |
+| 202 Accepted | The request was received but processing will happen later |
+| 204 No Content | Request succeeded, no data to return, commonly used after DELETE |
 
-**Two terms to lock in:**
-- **Resource** = the actual "thing" (a document, a user, a template)
-- **Endpoint** = a specific URL + verb combo that does one job, e.g. `POST /api/documents`
+### 3xx
 
-## 6. Request Flow (Flowchart)
+| Code | Meaning |
+|---|---|
+| 301 Moved Permanently | The resource has moved to a new URL permanently |
+| 302 Found | The resource is temporarily available at a different URL |
+| 304 Not Modified | The client's cached copy is still valid, no new data sent |
+| 307 Temporary Redirect | Same as 302, but the original method must be reused |
+| 308 Permanent Redirect | Same as 301, but the original method must be reused |
 
-```
-                 USER ACTION
-             (clicks "Save Resume")
-                      |
-                      v
-        ┌───────────────────────────┐
-        │   FRONTEND (Angular)       │
-        │  builds request + JSON    │
-        └─────────────┬─────────────┘
-                      |
-              PUT /api/documents/42
-                      |
-                      v
-        ┌───────────────────────────┐
-        │  API LAYER (Express/Node)  │
-        │  - checks auth token       │
-        │  - validates request       │
-        └─────────────┬─────────────┘
-                      |
-                 SQL query
-                      |
-                      v
-        ┌───────────────────────────┐
-        │      DATABASE (MySQL)      │
-        │   reads / writes the row   │
-        └─────────────┬─────────────┘
-                      |
-               result rows back
-                      |
-                      v
-        ┌───────────────────────────┐
-        │  API LAYER (Express/Node)  │
-        │  wraps result in JSON +    │
-        │  attaches status code      │
-        └─────────────┬─────────────┘
-                      |
-              200 OK + JSON body
-                      |
-                      v
-        ┌───────────────────────────┐
-        │   FRONTEND (Angular)       │
-        │   updates screen for user  │
-        └───────────────────────────┘
-```
+### 4xx
 
-## 7. Resources vs Actions
+| Code | Meaning |
+|---|---|
+| 400 Bad Request | The request was malformed or missing required data |
+| 401 Unauthorized | The client is not authenticated |
+| 403 Forbidden | The client is authenticated but not permitted to perform this action |
+| 404 Not Found | The requested resource does not exist |
+| 405 Method Not Allowed | The URL exists but does not support this method |
+| 406 Not Acceptable | The server cannot produce a response matching the Accept header |
+| 408 Request Timeout | The client took too long to send the request |
+| 409 Conflict | The request conflicts with the current state, such as a duplicate entry |
+| 410 Gone | The resource existed before but has been permanently removed |
+| 415 Unsupported Media Type | The server does not support the format of the request body |
+| 422 Unprocessable Entity | The request is well-formed but contains invalid data |
+| 429 Too Many Requests | The client has sent too many requests in a given time |
 
-Not everything in an API is "stored data." Some endpoints just perform a job and hand back a result, without saving a permanent row.
+### 5xx
 
-**Stored resources (actual data that sits in the database):**
-- User account
-- Document (resume/cover letter)
-- Section & section items
-- Version history
-- Template
-- Application (job tracking)
-- Share link
+| Code | Meaning |
+|---|---|
+| 500 Internal Server Error | An unhandled error occurred in the server's code |
+| 501 Not Implemented | The server does not support the functionality required |
+| 502 Bad Gateway | A server acting as a gateway received an invalid response from another server |
+| 503 Service Unavailable | The server is temporarily overloaded or under maintenance |
+| 504 Gateway Timeout | A gateway server did not receive a timely response from an upstream server |
 
-**Action-only endpoints (compute something, don't necessarily save it):**
-- Auth (login/register)
-- AI writing (bullets, summary, rewrite)
-- ATS scoring
-- Tailoring to a job description
-- Export (PDF/DOCX generation)
-
-## 8. Patterns That Make REST APIs Predictable
-
-- **Nested URLs = ownership.** An item lives inside a section, which lives inside a document, so the path itself shows the hierarchy: `/documents/42/sections/3/items/7`
-- **Actions still use POST**, even if there's no permanent save happening — because POST generally means "process this and give me a result."
-- **Some endpoints skip authentication on purpose** — like a public share link. It uses a random unguessable code instead of a real internal ID, so nobody can just guess and access someone else's data by changing numbers.
-- **The verb decides the action, the URL decides the target.** That's the whole logic of REST in one line.
-
-## 9. Why Browser Storage Exists
-
-A website often needs to remember something about you — that you're logged in, that you prefer dark mode, or the item you left in your cart. Instead of asking the server every single time, the browser itself can hold onto small pieces of data on your computer.
-
-There are four main storage options a browser gives, and each one is meant for a different purpose. They differ in three things:
-
-1. How much data they can hold
-2. How long the data survives
-3. Whether that data automatically gets sent to the server
-
-## 10. Storage Decision Flowchart
-
-```
-                        START: Need to store some data?
-                                    |
-                                    v
-                  Does the server need this data automatically
-                  attached to every request (like login info)?
-                                    |
-                    ----------------------------------
-                    |                                |
-                   YES                               NO
-                    |                                |
-                    v                                v
-              Use COOKIES                Does this data need to survive
-          (auth tokens, sessions,        even after the browser is closed
-           "remember me")                and reopened later?
-                                                    |
-                                  --------------------------------
-                                  |                              |
-                                 YES                              NO
-                                  |                                |
-                                  v                                v
-                    Is it a large amount of data          Use SESSION STORAGE
-                    or does it need to store objects,     (temporary form data,
-                    files, or images (not just text)?     one-tab-only data)
-                                  |
-                  ------------------------------------
-                  |                                  |
-                 YES                                NO
-                  |                                  |
-                  v                                  v
-           Use INDEXEDDB                    Use LOCAL STORAGE
-     (offline documents, cached          (theme preference, saved
-      files, large datasets)              settings, language choice)
-```
-
-## 11. Cookies
-
-**Definition:** A cookie is a small piece of text data that the browser stores and automatically attaches to every request sent to the server it belongs to.
-
-Think of it like a visitor badge at a mall entrance. Once you're given the badge, every shop you walk into can glance at it and instantly know it's the same visitor, without you introducing yourself again.
-
-**Key properties:**
-- Very small size, roughly 4 KB
-- Automatically sent to the server with every single request
-- Can have an expiry date (for example, it self-deletes after 7 days)
-- Accessible by both the browser and the server
-
-**Real-life best use:** Staying logged into Gmail. When you sign in once, a cookie stores your session token, and every time you revisit Gmail, that cookie is silently sent along, so the server instantly recognizes you instead of asking you to log in again.
-
-## 12. Local Storage
-
-**Definition:** Local Storage is a browser-only storage space that keeps data permanently, until it is manually cleared, either by the code or by the user.
-
-Think of it as a drawer in your room. Whatever you place inside stays exactly where you left it, whether you check tomorrow, next week, or next month.
-
-**Key properties:**
-- Holds around 5 to 10 MB
-- Never expires automatically
-- Never gets sent to the server — it stays purely on the browser side
-- Can only store plain text (strings); objects must be converted using `JSON.stringify()` before saving and `JSON.parse()` after reading
-
-**Real-life best use:** YouTube remembering that you prefer dark mode. Once you switch the theme, YouTube saves that choice in Local Storage, so even after closing and reopening the browser weeks later, dark mode is still active.
-
-## 13. Session Storage
-
-**Definition:** Session Storage is browser storage that only lives for as long as that particular browser tab stays open. The moment the tab is closed, the data disappears completely.
-
-Think of it as a classroom whiteboard. Notes can be written during the class, but the moment the class ends, everything gets wiped clean.
-
-**Key properties:**
-- Holds around 5 MB
-- Exists only while the tab is open; closing the tab erases it instantly
-- Never sent to the server
-- Completely separate per tab — two tabs of the same website do not share this data
-
-**Real-life best use:** Filling out a long form online. If you accidentally refresh the page, your entered data can still be recovered from Session Storage. But if you close the tab entirely, that data is gone for good.
-
-## 14. IndexedDB
-
-**Definition:** IndexedDB is a browser-based database capable of storing large amounts of structured data, including actual files, images, and complete objects, not just plain text.
-
-Think of it as an entire library compared to Local Storage's single drawer. It's built to hold serious volumes of organized information.
-
-**Key properties:**
-- Can store hundreds of MB or more
-- Can directly store objects, files, images, and videos, unlike the string-only limitation of Cookies or Local Storage
-- Commonly used to make apps work offline
-
-**Real-life best use:** Google Docs saving your document locally so that if your internet connection drops, your work isn't lost, and it automatically syncs once you're back online. Spotify similarly uses IndexedDB to store downloaded songs for offline playback.
-
-## 15. Complete Comparison Table
-
-| Feature | Cookies | Local Storage | Session Storage | IndexedDB |
-|---|---|---|---|---|
-| Storage size | ~4 KB | 5–10 MB | ~5 MB | Hundreds of MB+ |
-| Sent to server automatically | Yes | No | No | No |
-| Expires | Yes (can set expiry) | No, stays forever | Yes, on tab close | No |
-| Can store large data | No | No | No | Yes |
-| Can store objects/files directly | No, text only | No, strings only | No, strings only | Yes |
-| Best real-life use | Login sessions, authentication | Theme, language, preferences | Temporary form data, per-tab data | Offline documents, cached media, large datasets |
-
-## 16. Real Websites and What They Use
-
-| Website | Storage Used | Reason |
-|---|---|---|
-| Gmail | Cookies | Keeps the user logged in across visits |
-| YouTube | Local Storage | Remembers volume, dark mode, and preferences |
-| Amazon | Cookies + Local Storage | Handles login, cart contents, and preferences |
-| Google Docs | IndexedDB | Saves documents locally to survive offline |
-| Spotify | IndexedDB | Caches downloaded songs for offline listening |
-| Google Maps | IndexedDB | Stores offline map data for areas without internet |
+Real-life example: A 401 means you never showed an ID card at all (not logged in). A 403 means you showed the ID card, the server recognized you, and still said no because you don't have permission. This is a common interview distinction.
 
 ---
 
-## Quick Recap
+## REST Naming Conventions & API Versioning
 
-**REST API basics:**
-- REST API = middleman between frontend and backend/database
-- Every resource has a unique address (URL)
-- Only 4 actions exist: GET (read), POST (create), PUT (update), DELETE (remove)
-- REST is stateless — server doesn't remember previous requests, so every request must identify itself
-- Data travels as JSON, and every response carries a status code (200, 201, 404, 500)
-- Resource = the "thing" itself; Endpoint = URL + verb combo that acts on it
-- Nested URLs show ownership; non-CRUD actions still use POST; some endpoints (like share links) skip auth on purpose
+Definition: Naming conventions are the agreed rules for writing URLs consistently across an API, so that any resource's address is predictable.
 
-**Browser storage basics:**
-- **Cookies** → Visitor Badge → ~4 KB, auto-sent to server, expires, best for login/auth
-- **Local Storage** → Bedroom Drawer → 5–10 MB, never expires, not sent to server, best for saved preferences
-- **Session Storage** → Classroom Whiteboard → ~5 MB, wiped on tab close, not sent to server, best for temporary form data
-- **IndexedDB** → Library → hundreds of MB+, stores objects/files directly, best for offline apps and large data
+| Incorrect | Correct |
+|---|---|
+| GET /getStudents | GET /students |
+| POST /createNewStudent | POST /students |
+| GET /student (singular) | GET /students (plural) |
+| GET /Students_List | GET /students (lowercase, kebab-case) |
+| POST /students/delete/99 | DELETE /students/99 |
+| GET /students/99/get-courses | GET /students/99/courses |
 
-**One-line memory hooks:**
-- Cookie = small + auto-sent + login
-- Local Storage = permanent + preferences
-- Session Storage = temporary + per-tab
-- IndexedDB = huge + offline + real files
+Rule: URLs should be nouns, written in plural, lowercase. Methods should carry the verb.
+
+Definition of API Versioning: Versioning allows the API's structure to change over time without breaking applications that were built against an older version.
+
+```
+/api/v1/students   old applications keep working against this version
+/api/v2/students    new response format ships under this version
+```
+
+Real-life example: This is similar to different editions of the same textbook — students studying from the old edition can continue to use it while a new edition exists for new students.
+
+---
+
+## API Design Best Practices (Consistency)
+
+Definition: Consistency means every part of an API follows the same rules, so a developer using it can predict behavior without checking documentation for every single endpoint.
+
+Checklist:
+- Plural nouns everywhere: /students, /courses, /orders
+- Lowercase and kebab-case: /course-modules
+- Filters passed in the query string: /students?year=2&sort=name
+- Version prefix included: /api/v1/...
+- Correct status codes used consistently: 201 for creation, 204 for deletion, 404 for missing resources, 422 for invalid data
+- The same JSON error shape returned for every failure, so client code can handle errors in one place
+
+---
+
+## Complete Request Lifecycle (Browser → DNS → API → Server → Database → Response)
+
+Definition: The request lifecycle describes every stage a single request passes through, from being typed in the browser to the final response being rendered.
+
+```mermaid
+flowchart LR
+    A[Browser - user enters URL] --> B[DNS - domain resolved to IP]
+    B --> C[Internet - TCP and TLS connection established]
+    C --> D[API Gateway - authentication and rate limiting]
+    D --> E[Node Server - Express matches the route]
+    E --> F[Controller - validates the request]
+    F --> G[Service - business logic runs]
+    G --> H[Database - data is read or written]
+    H --> I[JSON Response - sent back with a status code]
+    I --> J[Browser renders the result]
+```
+
+Real-life example: Typing a URL and pressing enter triggers all of these stages within roughly 200 milliseconds for a typical API call — DNS lookup, the TCP/TLS handshake, the request reaching the server, the server validating and processing it, the database being queried, and the JSON response being parsed and displayed.
+
+Where failures happen at each stage:
+- DNS fails: "server not found"
+- API gateway rejects: 401, 403, or 429
+- Controller rejects invalid input: 400 or 422
+- Service crashes: 500
+- Database is slow behind a proxy: 504
+
+---
+
+# Day 3 – Advanced REST & Browser Storage
+
+## REST Concepts Revision (Resources, Endpoints, Stateless APIs)
+
+Definition of Resource: A resource is any noun the application manages — a Student, a Document, an Order — and it is represented by its own URL.
+
+Definition of Endpoint: An endpoint is one specific URL combined with one specific HTTP method, representing exactly one action on a resource, for example POST /api/documents ("create a new document").
+
+Definition of Stateless API: A stateless API means the server does not retain any memory of previous requests from the same client. Every request must carry all the information the server needs to process it, typically through a token or cookie.
+
+Real-life example: Each time a mobile app requests data, it resends its authentication token, because the server treats every request as if it is meeting the client for the first time.
+
+---
+
+## Resources vs Action Endpoints
+
+Definition: Most REST endpoints correspond to actual stored data (resources). Some endpoints instead represent an action or computation that produces a result without necessarily being tied to one saved row of data — these are called action endpoints.
+
+Example from an AI Resume Builder API:
+
+| Type | Example | Description |
+|---|---|---|
+| Resource | GET /api/documents/:id | Returns a stored, saved document |
+| Resource | POST /api/documents | Creates and stores a new document |
+| Action endpoint | POST /api/ai/bullets | Generates bullet point text using AI, not a saved row |
+| Action endpoint | POST /api/ats/check | Scores a document and returns issues, a computed result |
+| Action endpoint | POST /api/exports/pdf | Renders a PDF file and returns its file URL |
+
+Real-life example: Requesting a bank statement (a stored resource) is different from asking the bank to calculate your loan eligibility (an action) — the second one produces a computed result rather than returning something already saved.
+
+Rule: Non-CRUD work is modeled as a POST to a verb-like resource name, because HTTP has no dedicated method for "compute" or "generate."
+
+---
+
+## Nested REST URLs
+
+Definition: A nested URL places one resource inside another in the path, to show that the inner resource belongs to and only exists within the outer resource.
+
+```
+GET    /students/99/courses                      courses belonging to student 99
+POST   /api/documents/:id/sections                add a section to document :id
+PATCH  /api/documents/:id/sections/:sectionId     edit a specific section
+DELETE /api/documents/:id/sections/:sectionId     remove a specific section
+POST   /api/documents/:id/sections/:sectionId/items   add an item to a section
+```
+
+Real-life example: A section inside a resume document does not exist on its own — it only makes sense as part of that particular document, so its URL is nested under the document's URL.
+
+Note: In practice, many applications save an entire resource in one PUT call (for example, PUT /api/documents/:id saving a whole document at once) rather than editing each nested piece separately over the network. Both approaches are valid; nested routes matter most when fine-grained, field-by-field autosave behavior is needed.
+
+One endpoint is often deliberately made public and unnested from authentication, such as GET /api/share/:slug for a shared link, and it typically uses an unguessable random slug instead of the actual resource id, so records cannot be guessed or enumerated.
+
+---
+
+## Browser Storage
+
+Definition: Browser storage refers to the different mechanisms a browser provides to save small amounts of data directly on the user's own computer, rather than on the server.
+
+```mermaid
+flowchart TD
+    Browser --> Cookies
+    Browser --> LocalStorage[Local Storage]
+    Browser --> SessionStorage[Session Storage]
+    Browser --> IndexedDB
+```
+
+### Cookies
+
+Definition: A cookie is a small piece of data the server sends to the browser, which the browser then automatically attaches to every future request to that same server.
+
+Real-life example: Logging into Gmail saves a cookie such as user=dinesh, token=abc123. On every later visit, the browser automatically sends that cookie back, and the server recognizes the same user without requiring login again.
+
+Characteristics: about 4 KB in size, sent to the server automatically with every request, and can be set to expire after a period of time, for example seven days.
+
+Common uses: login sessions, "remember me" functionality, shopping carts, language preference.
+
+### Local Storage
+
+Definition: Local Storage saves data in the browser that stays there indefinitely, until it is explicitly removed by code or the user.
+
+Real-life example: Selecting dark mode on a website saves theme=dark in Local Storage. Returning to the site any time later, even after closing the browser completely, the site reads theme=dark and dark mode is restored automatically.
+
+```js
+localStorage.setItem("theme", "dark");
+localStorage.getItem("theme");
+localStorage.removeItem("theme");
+```
+
+Characteristics: around 5 to 10 MB in size, never expires on its own, not sent to the server, and only accessible by scripts running in the browser.
+
+### Session Storage
+
+Definition: Session Storage saves data only for the duration that a browser tab remains open. It is cleared automatically the moment that tab is closed.
+
+Real-life example: Filling out a long online form, the site can hold the entered values temporarily. An accidental page refresh keeps the data, but closing the tab clears it completely. Each browser tab also keeps its own separate copy — searching "laptop" in one tab and "shoes" in another tab on the same site does not mix the two.
+
+```js
+sessionStorage.setItem("name", "Unishka");
+sessionStorage.getItem("name");
+```
+
+Characteristics: around 5 MB in size, exists only while the tab stays open, not sent to the server, and kept separate per tab.
+
+### IndexedDB
+
+Definition: IndexedDB is a browser database capable of storing large amounts of structured data, including whole objects, files, and images, directly in the browser.
+
+Real-life example: Google Docs stores a document in IndexedDB so that editing can continue even if the internet connection drops, and Spotify stores downloaded songs in IndexedDB so they can play back offline.
+
+Characteristics: capacity of hundreds of MB or more, and unlike the other storage types it can store whole objects, files, and binary data directly rather than only text strings.
+
+---
+
+## Browser Storage Comparison
+
+| Feature | Cookies | Local Storage | Session Storage | IndexedDB |
+|---|---|---|---|---|
+| Size | 4 KB | 5 to 10 MB | 5 MB | Hundreds of MB or more |
+| Sent to server | Yes | No | No | No |
+| Expires | Yes | No | On tab close | No |
+| Suitable for large data | No | No | No | Yes |
+| Stores objects directly | No | No, strings only | No, strings only | Yes |
+| Best use | Login, authentication | Theme, preferences | Temporary form data | Offline data, large files |
+
+Note: Local Storage and Session Storage can only store strings. To save an object, it must first be converted using JSON.stringify() before saving, and converted back using JSON.parse() after reading. IndexedDB does not have this limitation and can store objects directly.
+
+---
+
+## Real-World Browser Storage Use Cases
+
+| Website | Storage used | Reason |
+|---|---|---|
+| Gmail | Cookies | Keeps the user logged in across requests |
+| YouTube | Local Storage | Remembers dark mode, volume level, preferences |
+| Amazon | Cookies and Local Storage | Handles login, shopping cart, and saved preferences |
+| Google Docs | IndexedDB | Saves documents locally so editing works offline |
+| Spotify | IndexedDB | Caches downloaded songs for offline playback |
+| Google Maps | IndexedDB | Stores offline map data, which is too large for cookies or Local Storage |
+
+Common interview questions on this topic:
+- Which storage type is sent to the server on every request: Cookies.
+- Which storage types survive a full browser restart: Local Storage and IndexedDB.
+- Which storage type is deleted when the tab closes: Session Storage.
+- Which storage type is best suited for offline applications and large data: IndexedDB.
+- Can Local Storage store objects directly: No, it can only store strings; objects must be converted with JSON.stringify() and JSON.parse().
