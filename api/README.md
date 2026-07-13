@@ -749,3 +749,142 @@ Common interview questions on this topic:
 - Which storage type is deleted when the tab closes: Session Storage.
 - Which storage type is best suited for offline applications and large data: IndexedDB.
 - Can Local Storage store objects directly: No, it can only store strings; objects must be converted with JSON.stringify() and JSON.parse().
+
+---
+---
+# Day 4 - Frontend, Backend & the Server
+
+## 1. The two halves of every web app
+
+Every website has two sides that talk to each other.
+
+- Frontend - what you see and click, running in your browser
+- Backend - the logic and data, running on a server somewhere else
+
+The frontend asks, the backend answers.
+
+## 2. Frontend - what the user sees
+
+The frontend builds the user interface. It runs inside the browser and handles what the user sees and does.
+
+### Languages
+
+- HTML - structure
+- CSS - styling
+- JavaScript - behaviour
+
+### Frameworks and libraries
+
+- React, Angular, Vue.js - the modern big three
+- jQuery, Backbone.js - older tools still seen around
+
+Frontend does: the UI, user interactions, animations, forms, and rendering the page. It all runs in the browser.
+
+## 3. Backend - the engine behind it
+
+The backend runs on the server, not in the browser. The user never sees it directly. It does the real work behind the scenes.
+
+### Languages and frameworks
+
+- Node.js + Express.js - JavaScript on the server
+- Python, Java, PHP, ASP.NET, JSP - other backend choices
+
+### What the backend does
+
+- runs the business logic (the rules of the app)
+- connects to the database
+- handles authentication and authorization (who are you, what are you allowed to do)
+- builds the APIs the frontend calls
+- sends data back to the frontend
+
+## 4. The application server
+
+The application server is the software that sits in the middle. It receives requests, runs the backend logic, and sends responses back.
+
+Node.js + Express is the application server here. JavaScript runs on the server through Node, and Express is the framework that handles the requests. Together they take a client request and return a response.
+
+## 5. The complete web flow
+
+Browser -> Frontend -> HTTP request -> Application Server -> Business Logic -> Database -> response (JSON) -> Frontend updates the UI
+
+Read it as a round trip: the request travels down from browser to database, then the response (usually JSON) travels back up, and the frontend redraws the screen with the new data.
+
+## 6. Frontend vs Backend at a glance
+
+| | Frontend | Backend |
+|---|---|---|
+| Runs in | the browser | the server |
+| User sees it? | yes, directly | no, hidden |
+| Job | UI, interaction, display | logic, data, security |
+| Languages | HTML, CSS, JS | Node, Python, Java, PHP |
+| Frameworks | React, Angular, Vue | Express, Django, Spring |
+| Talks to | the user and the API | the API and the database |
+
+## 7. Say it in one line (for interviews)
+
+**Frontend** - What users see and interact with.
+
+**Backend** - Processes requests, runs business logic, and handles the database.
+
+**Application server** - Software (like Node.js + Express) that receives HTTP requests, runs the backend logic, and sends responses back to the client.
+
+The whole thing in one breath: the frontend asks, the application server processes and talks to the database, then sends back JSON, and the frontend updates the screen.
+
+## 8. Library vs Framework
+
+These two words get used a lot, and it is easy to mix them up. The real difference is about **who is in control** - your code, or the tool's code.
+
+### What is a library
+
+A library is a set of ready-made functions or tools that you can call whenever you need them. You are in control. You decide when to call the library, and your code stays in charge of the overall flow.
+
+Standard definition: A library is a collection of pre-written code (functions, methods) that a developer calls from their own code to perform specific tasks.
+
+Simple way to say it: A library is like a toolbox. You pick up the tool you need, use it, and put it back. You decide the order of work.
+
+Examples of libraries:
+- jQuery - helps you do things like selecting elements or handling clicks, but you write the flow of your page
+- React - technically a library, it helps you build UI pieces (components), but you decide how to use them and where
+- Lodash - gives you utility functions for arrays, objects, etc, you call them when you want
+- Axios - helps you make HTTP requests, you call it whenever your code needs data
+
+When to use a library:
+- When you only need help with one specific task, like making an API call or formatting a date
+- When you want to keep control of your app's structure and just borrow some functionality
+- When your project is small to medium and you do not want to follow someone else's strict rules
+- When you want more flexibility in how you organize your code
+
+### What is a framework
+
+A framework is a complete structure that provides the skeleton of the application. The framework is in control. It decides the flow, and your code fills in the blanks it asks for. This idea is called Inversion of Control.
+
+Standard definition: A framework is a predefined structure or platform that dictates the architecture of the application, and calls the developer's code when needed.
+
+Simple way to say it: A framework is like a house that is already built with rooms fixed in place. You just decide what furniture goes in each room. The structure of the house is not your choice.
+
+Examples of frameworks:
+- Angular - a full frontend framework, it decides how your app is structured (modules, components, services)
+- Express.js - a backend framework for Node.js, it decides how routes, middleware, and requests are handled
+- Django - a Python backend framework, it comes with its own rules for models, views, and templates
+- Spring - a Java framework, it controls how the whole application is wired together
+
+When to use a framework:
+- When building a large application that needs a consistent structure across a big team
+- When you want built-in solutions for common problems like routing, authentication, or database handling
+- When the project will grow big and needs discipline and standard patterns from day one
+- When you want faster setup because a lot of decisions are already made for you
+
+### The core difference in one line
+
+In a library, you call the code. In a framework, the code calls you.
+
+### Quick comparison
+
+| | Library | Framework |
+|---|---|---|
+| Control | Your code stays in control | Framework controls the flow |
+| Flexibility | High, use only what you need | Lower, must follow its structure |
+| Learning | Easier, pick up small pieces | Takes longer, has its own rules |
+| Example | jQuery, Axios, Lodash | Angular, Express.js, Django |
+| Best for | Small tasks, adding one feature | Full applications, large projects |
+
