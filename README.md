@@ -15,7 +15,8 @@ Daily learning notes and practice from my full-stack development internship — 
 | [css](./css) | CSS fundamentals — selectors, box model, layout, Flexbox, Grid, responsive design |
 | [js](./js) | JavaScript fundamentals — variables, functions, objects, arrays, DOM, events, array methods |
 | [api](./api) | APIs, HTTP methods, status codes, fetch(), JSON, authentication basics |
-| [backend](./backend) | Backend development with Node.js and Express — Express, routing, middleware, npm, project structure, MVC architecture, Postman, CRUD APIs |
+| [Backend](./Backend) | Backend development with Node.js and Express — Express, routing, middleware, npm, project structure, MVC architecture, Postman, CRUD APIs |
+| [Database](./Database) | Database fundamentals — SQL basics, tables, relationships, CRUD operations, connecting databases with Node.js/Express |
 
 ---
 
@@ -46,8 +47,14 @@ Backend Development
 ├── Routing
 ├── MVC Architecture
 ├── npm
-├── CRUD APIs
-└── Database (Coming Soon)
+└── CRUD APIs
+        │
+        ▼
+Database
+│
+├── SQL Basics
+├── Tables & Relationships
+└── Connecting DB with Express
 ```
 
 ---
