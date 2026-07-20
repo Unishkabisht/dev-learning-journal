@@ -171,6 +171,8 @@ JOIN users ON resumes.userId = users.id;
 | manish  | manish@gmail.com    | application developer  |
 | manish  | manish@gmail.com    | full stack developer   |
 
+**Also learned:** without `ORDER BY`, MySQL does **not guarantee** any particular row order. Use `ORDER BY id` (or any column) to control the order explicitly.
+
 ---
 
 ## 9) Normalization — Store Each Fact Only Once
