@@ -1002,4 +1002,309 @@ CREATE TABLE employees (
 |--------|-----------|--------------|
 | **Format** | Fixed, predefined | Flexible, varying |
 | **Schema** | Strict schema required | No fixed schema |
-| **Field Nam
+---
+---
+# Day 18 · Class 2 — Storing Data, Step by Step (English Explanation)
+
+**Topic:** Full-Stack Internship · Module 4 · Database
+**Instructor:** Dinesh Rawat
+
+---
+
+## What this class is about
+
+In the last class, you created a database and a `users` table by hand in MySQL Workbench, and wrote INSERT/SELECT queries yourself. Today you do the same work from JavaScript — meaning the code talks to the database now, one operation at a time. For each step, you'll see three things:
+
+1. What JavaScript you write
+2. What SQL Sequelize (the ORM) turns it into
+3. What result comes back
+
+By the end of this class, a real user will be saved in the database, along with their resumes. You'll then read them back and update one of them — and you'll understand exactly what each line does to the database.
+
+---
+
+## Step 0: The setup before any step
+
+Three model files describe the tables, and one connection file talks to MySQL. You already wrote versions of these before — here they're shown together so every step below has a solid foundation.
+
+### `config/database.js` — the MySQL connection
+
+This file tells Sequelize where the database is and how to connect to it.
+
+```javascript
+const { Sequelize } = require('sequelize');
+
+const sequelize = new Sequelize(
+  'resume_db',        // the database name (already created in MySQL Workbench)
+  'root',             // your MySQL username
+  'your_password',    // your MySQL password (set during installation)
+  {
+    host: 'localhost', // MySQL runs on your own machine
+    dialect: 'mysql',  // tells Sequelize to speak MySQL
+    logging: false,    // set to console.log to see every SQL query it sends
+  }
+);
+
+module.exports = sequelize;
+```
+
+In simple terms: this file creates just one connection object, and every other file talks to the database through this same object. That's why it acts as the single source of truth for the connection.
+
+### `models/user.js` — the structure of the User table
+
+```javascript
+const { DataTypes } = require('sequelize');
+const bcrypt = require('bcryptjs');
+const sequelize = require('../config/database');
+
+const User = sequelize.define('User', {
+  name: { type: DataTypes.STRING, allowNull: false },
+  email: { type: DataTypes.STRING, allowNull: false, unique: true,
+    validate: { isEmail: true } },
+  password: { type: DataTypes.STRING, allowNull: false },
+});
+
+// hash the password before it gets saved
+User.beforeCreate(async (user) => {
+  const salt = await bcrypt.genSalt(10);
+  user.password = await bcrypt.hash(user.password, salt);
+});
+
+User.prototype.checkPassword = function (plainText) {
+  return bcrypt.compare(plainText, this.password);
+};
+
+// ---- this model's relationship lives in this file ----
+// This function receives all the models, so it never needs to
+// require Resume itself. That's what avoids the circular require.
+// It's called once, after all models have been loaded
+// (see models/index.js).
+User.associate = (models) => {
+  User.hasMany(models.Resume, { foreignKey: 'userId', onDelete: 'CASCADE' });
+};
+
+module.exports = User;
+```
+
+The important thing here: the password is never saved as plain text. The `beforeCreate` hook automatically hashes it with bcrypt right before it's saved.
+
+### `models/resume.js` — the structure of the Resume table
+
+```javascript
+const { DataTypes } = require('sequelize');
+const sequelize = require('../config/database');
+
+const Resume = sequelize.define('Resume', {
+  title: { type: DataTypes.STRING, allowNull: false },
+  summary: { type: DataTypes.TEXT },
+});
+
+// ---- this model's relationship lives in this file ----
+Resume.associate = (models) => {
+  Resume.belongsTo(models.User, { foreignKey: 'userId' });
+};
+
+module.exports = Resume;
+```
+
+### `models/index.js` — the file that connects all models
+
+```javascript
+const sequelize = require('../config/database');
+const User = require('./user');
+const Resume = require('./resume');
+
+const models = { User, Resume };
+
+// now that all models are loaded, wire up each one's relationships
+Object.values(models).forEach((model) => {
+  if (model.associate) model.associate(models);
+});
+
+module.exports = { sequelize, ...models };
+```
+
+**Important pattern to understand:** earlier, the job of defining `associate` used to sit in one single file (all relationships written there together). Now, each model defines its own relationship inside its own file (`User.associate`, `Resume.associate`), and `index.js` simply loads all the models and then calls each model's `associate()` once. This keeps the code cleaner and avoids circular require issues (like the User file needing to directly require Resume).
+
+---
+
+## Step 1: Syncing the database
+
+```javascript
+const { sequelize, User, Resume } = require('./models');
+await sequelize.sync(); // no force, so existing data is kept
+```
+
+`sync()` means — Sequelize creates tables in the database based on the models, if they don't already exist. Here, `force: true` was NOT passed, so if the `users` or `resumes` tables already exist, their data stays safe. If `force: true` were passed, every time `sync()` runs the tables would be dropped and recreated fresh — meaning all existing data would be wiped out.
+
+---
+
+## Step 2: Creating a new User
+
+```javascript
+const user = await User.create({
+  name: 'Himanshu',
+  email: 'himanshu@example.com',
+  password: 'secret123',
+});
+
+console.log('Saved user #' + user.id);
+```
+
+**Sequelize sends this SQL:**
+
+```sql
+INSERT INTO `Users`
+(`name`, `email`, `password`, `createdAt`, `updatedAt`)
+VALUES ('Himanshu', 'himanshu@example.com', ..., NOW(), NOW());
+```
+
+**Result:**
+```
+Saved user #1
+```
+
+The key thing to notice here: as soon as `User.create` is called, Sequelize builds the INSERT query. The `createdAt` and `updatedAt` columns get added automatically — you never have to write them manually. And as soon as the row is inserted, the database assigns it an `id` (here, `1`), which comes back right away through `user.id`. That's why you can immediately use this new user's id in the next step.
+
+---
+
+## Step 3: Creating resumes for that user
+
+```javascript
+await Resume.create({
+  title: 'Full Stack Intern',
+  summary: 'Built REST APIs with Node, Express and MySQL.',
+  userId: user.id,
+});
+
+await Resume.create({
+  title: 'QA Intern',
+  summary: 'Manual test cases and API tests with Postman.',
+  userId: user.id,
+});
+
+console.log('Saved 2 resumes');
+```
+
+**Sequelize sends this SQL:**
+
+```sql
+INSERT INTO `Resumes`
+(`title`, `summary`, `userId`, `createdAt`, `updatedAt`)
+VALUES ('Full Stack Intern', '...', 1, NOW(), NOW());
+```
+
+**Result:**
+```
+Saved 2 resumes
+```
+
+Here, `userId: user.id` is exactly what links this Resume to the User. Since `user.id` from the previous step was `1`, this resume gets saved with `userId: 1` — meaning it belongs to that specific user.
+
+---
+
+## Step 4: Reading all resumes belonging to that user
+
+```javascript
+const resumes = await Resume.findAll({ where: { userId: user.id } });
+console.log('This user has', resumes.length, 'resumes:');
+resumes.forEach(r => console.log(' -', r.title));
+```
+
+**Sequelize sends this SQL:**
+
+```sql
+SELECT id, title, summary, userId, createdAt, updatedAt
+FROM `Resumes`
+WHERE `userId` = 1;
+```
+
+**Result:**
+```
+This user has 2 resumes:
+ - Full Stack Intern
+ - QA Intern
+```
+
+`findAll` means fetching multiple rows, and `where: { userId: ... }` acts as a filter — just like SQL's `WHERE` clause. Only the resumes belonging to that matching user id will come back.
+
+(If only a single row were needed, you'd use `findByPk` or `findOne` instead of `findAll`.)
+
+---
+
+## Step 5: Fetching a Resume together with its User (JOIN)
+
+```javascript
+const first = await Resume.findByPk(resumes[0].id, { include: User });
+console.log('Resume "' + first.title + '" belongs to ' + first.User.name);
+```
+
+**Sequelize sends this SQL:**
+
+```sql
+SELECT Resume.*, User.name, User.email
+FROM `Resumes` AS `Resume`
+LEFT OUTER JOIN `Users` AS `User`
+ON `Resume`.`userId` = `User`.`id`
+WHERE `Resume`.`id` = 1;
+```
+
+**Result:**
+```
+Resume "Full Stack Intern" belongs to Himanshu
+```
+
+Here, passing `include: User` tells Sequelize to automatically build a `LEFT OUTER JOIN` — meaning the related User comes back together with the Resume in a single query (matching `Resume.userId` to `User.id`).
+
+**Important thing to remember:** the joined User data will be available as `first.User` (capital U), not the lowercase `first.user`. This is Sequelize's default naming based on the model's name.
+
+---
+
+## Step 6: Updating a resume
+
+```javascript
+first.title = 'Senior Full Stack Intern';
+await first.save();
+console.log('Updated title:', first.title);
+```
+
+**Sequelize sends this SQL:**
+
+```sql
+UPDATE `Resumes`
+SET `title` = 'Senior Full Stack Intern', `updatedAt` = NOW()
+WHERE `id` = 1;
+```
+
+**Result:**
+```
+Updated title: Senior Full Stack Intern
+```
+
+The pattern here: first, change the property directly on the JS object (`first.title = ...`), then call `.save()`. Sequelize automatically figures out which row to update (based on the `id`), and also automatically sets `updatedAt` to the current time. The `WHERE id = 1` is there because that's exactly what identifies this particular resume.
+
+---
+
+## Final check — looking directly at the database
+
+```sql
+SELECT * FROM resumes;
+```
+
+```
++----+---------------------------+---------+--------+
+| id | title                     | summary | userId |
++----+---------------------------+---------+--------+
+| 1  | Senior Full Stack Intern  | ...     | 1      |
+| 2  | QA Intern                 | ...     | 1      |
++----+---------------------------+---------+--------+
+```
+
+This confirms that everything done through JS code — create, read, and update — is reflected in the actual MySQL table.
+
+---
+
+## The most important takeaway
+
+Every JavaScript line (`create`, `findAll`, `findByPk`, `save`) is actually sending a real SQL query to MySQL behind the scenes. Sequelize just makes this easier so you don't have to write raw SQL yourself, but ultimately every operation converts into an INSERT, SELECT, or UPDATE query. Understanding what SQL is happening behind each JS command is exactly what makes debugging easier when something goes wrong.
+
