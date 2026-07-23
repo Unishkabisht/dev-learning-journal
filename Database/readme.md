@@ -1004,7 +1004,7 @@ CREATE TABLE employees (
 | **Schema** | Strict schema required | No fixed schema |
 ---
 ---
-# Day 18 · Class 2 — Storing Data, Step by Step (English Explanation)
+# Day 18 · Day 3 notes — Storing Data, Step by Step.
 
 **Topic:** Full-Stack Internship · Module 4 · Database
 **Instructor:** Dinesh Rawat
