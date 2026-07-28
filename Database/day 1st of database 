@@ -1,0 +1,77 @@
+# 1. Databases & DBMS — The Basics
+
+---
+
+## What is a Database?
+
+**Definition:** A database is an organized collection of structured data, stored in a way that allows efficient retrieval, modification, and management.
+
+**Key points:**
+- Data is stored in an organized manner for easy access.
+- Data does not manage itself — it needs a DBMS to maintain, protect, and query it.
+- A database enables multi-user access with data consistency and security.
+
+> **Analogy — A Library**
+> A database is like a well-organized library. The books are the data. They aren't dumped in a pile — they're arranged in a system, indexed, and managed by a librarian. The librarian in this analogy is the DBMS.
+
+---
+
+## What is a DBMS?
+
+**DBMS** = Database Management System.
+
+**Definition:** The software application that stores, manages, retrieves, and protects data in a database.
+
+**Responsibilities of a DBMS:**
+- Storing data safely and efficiently
+- Retrieving data when requested
+- Protecting data from unauthorized access
+- Managing concurrent user access
+- Maintaining data integrity and consistency
+
+**Examples of DBMS software:**
+- MySQL
+- PostgreSQL
+- Oracle Database
+- MongoDB (a NoSQL DBMS)
+- Microsoft SQL Server
+
+**Important distinction:** When you "install MySQL," you are installing a DBMS — the software that manages databases for you. MySQL itself is not "the database"; it's the engine that runs databases.
+
+---
+
+## Why We Moved Away From a Plain File (`data.json`)
+
+Before using MySQL, a project can store all its data inside a simple text file, e.g. `data.json`. Every record is written into it as plain text, and the code opens the file, reads it, changes it, and saves it back every time.
+
+This works for small class projects but breaks in the real world for two reasons:
+
+### Reason 1 — Race Conditions
+
+> **Analogy — Two People Editing the Same Word File**
+> Imagine two people open the same Word file on their own laptops at the same time. Both make changes and save. Whoever saves last "wins" — the other person's changes are silently lost, with no warning. This is called a **race condition**, and a plain file cannot prevent it.
+>
+> A database behaves like a shared Google Doc instead — everyone works on the same live copy, changes don't overwrite each other, and nothing gets silently lost.
+
+### Reason 2 — Speed
+
+If a plain file had thousands of records in it, the code would have to load the entire file into memory and loop through every single entry just to find one record. A database is built specifically to avoid this — it can locate the right record almost instantly, no matter how large the data grows (this is related to **indexing**, covered later in file 7).
+
+**Conclusion:** A real database (like MySQL) solves both the race condition problem and the speed problem that a plain file cannot solve.
+
+---
+
+## MySQL Server vs MySQL Workbench
+
+- **MySQL Server** — the actual database engine. It runs in the background (as a Windows service) and is where the real data physically lives.
+- **MySQL Workbench** — the GUI tool used to write queries, view tables, and manage the database. It is not the database itself; it's a window into it.
+- A root password is set during installation to control access to the server.
+
+> **Analogy — A Bank**
+> MySQL Server is like the secure server room inside a bank where all the actual money (data) is kept — you never walk in and touch it directly. MySQL Workbench is like the ATM screen — an interface where you give instructions ("show balance," "deposit money") without ever entering the server room yourself. The root password is like your ATM PIN: forget it, and you can't connect anymore.
+
+---
+
+## Next
+
+File 2 covers the difference between a generic DBMS and an RDBMS.
