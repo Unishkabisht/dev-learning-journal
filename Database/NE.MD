@@ -350,6 +350,134 @@ JOIN users ON resumes.userId = users.id;
 > **Analogy — A Printed Form vs a Diary Entry**
 > Structured data is like a printed government form — every copy has the same fields, in the same order, and a blank field is obviously missing. Unstructured data is like a diary entry — one day might be three lines, another day three pages with a sketch in the margin. Both are valid data, but only one fits neatly into a table.
 
+## Structured vs Unstructured Data
+
+### Structured Data
+
+**Definition:** Data organized in a **predefined format** with a clear structure.
+
+**Characteristics:**
+- Organized in tables, rows, and columns
+- Follows a fixed schema
+- Every record has the same fields
+- Easily queryable and searchable
+- Predictable format
+
+**Examples:**
+- Employee database (consistent columns: name, email, salary, department)
+- Customer orders (order ID, customer ID, amount, date)
+- Product catalog (product name, price, description, stock)
+- Bank transactions (account ID, amount, date, type)
+
+**Storage:**
+```sql
+-- Example: Employee table (Structured)
+CREATE TABLE employees (
+  id INT PRIMARY KEY,
+  name VARCHAR(100),
+  email VARCHAR(100),
+  salary DECIMAL(10, 2),
+  department VARCHAR(50),
+  hireDate DATE
+);
+
+-- Every record has exactly these 6 fields
+-- All data follows the same structure
+```
+
+**Advantages:**
+- ✅ Efficient querying and indexing
+- ✅ Data consistency guaranteed
+- ✅ Easier to validate and constrain
+- ✅ Optimal for relationships (joins)
+- ✅ Better for reporting and analytics
+
+**Best Used With:** SQL Databases (MySQL, PostgreSQL, Oracle)
+
+---
+
+### Unstructured Data
+
+**Definition:** Data that **doesn't follow a predefined structure** or schema.
+
+**Characteristics:**
+- No fixed format or organization
+- Flexible schema (or no schema)
+- Different records can have different fields
+- Text, images, videos, audio
+- Harder to search and query
+- High volume, variety
+
+**Examples:**
+- Social media posts (different users, different content types)
+- Log files (varying formats and fields)
+- User-generated content (reviews, comments, articles)
+- Images and videos
+- Email messages
+- Customer feedback and surveys
+
+**Storage:**
+```javascript
+// Example: Social media posts (Unstructured)
+// Post 1
+{
+  userId: 123,
+  content: "Just had coffee!",
+  timestamp: "2024-01-15T10:30:00Z",
+  likes: 45
+}
+
+// Post 2 (different structure)
+{
+  userId: 456,
+  content: "Check out this photo",
+  image: "https://...",
+  timestamp: "2024-01-15T11:00:00Z",
+  likes: 200,
+  comments: [{ userId: 789, text: "Nice!" }],
+  hashtags: ["photography", "nature"]
+}
+
+// Post 3 (yet another structure)
+{
+  userId: 789,
+  videoUrl: "https://...",
+  duration: 120,
+  caption: "Video tutorial",
+  views: 1000,
+  shares: 50
+}
+
+// Each post can have different fields!
+```
+
+**Advantages:**
+- ✅ Flexible and adaptable to changing requirements
+- ✅ Can handle diverse data types
+- ✅ Scalable for massive data volumes
+- ✅ Fast writes (no schema validation overhead)
+- ✅ Good for rapid development (iterate quickly)
+
+**Disadvantages:**
+- ❌ Harder to query and search
+- ❌ No guaranteed data consistency
+- ❌ More complex to analyze
+- ❌ Storage overhead (stores field names with every record)
+
+**Best Used With:** NoSQL Databases (MongoDB, DynamoDB, Cassandra)
+
+---
+
+### Structured vs Unstructured: Comparison
+
+| Aspect | Structured | Unstructured |
+|--------|-----------|--------------|
+| **Format** | Fixed, predefined | Flexible, varying |
+| **Schema** | Strict schema required | No fixed schema |
+---
+
+---
+
 ```mermaid
 flowchart TD
     A[Data] --> B[Structured]
@@ -520,6 +648,9 @@ flowchart LR
     B --> C[Generated SQL - INSERT INTO Users]
     C --> D[MySQL database]
 ```
+---
+---
+
 
 ### ORM Architecture
 
@@ -714,134 +845,8 @@ await user.destroy();
 **All of this is translated to SQL by Sequelize!**
 
 ---
-
-## Structured vs Unstructured Data
-
-### Structured Data
-
-**Definition:** Data organized in a **predefined format** with a clear structure.
-
-**Characteristics:**
-- Organized in tables, rows, and columns
-- Follows a fixed schema
-- Every record has the same fields
-- Easily queryable and searchable
-- Predictable format
-
-**Examples:**
-- Employee database (consistent columns: name, email, salary, department)
-- Customer orders (order ID, customer ID, amount, date)
-- Product catalog (product name, price, description, stock)
-- Bank transactions (account ID, amount, date, type)
-
-**Storage:**
-```sql
--- Example: Employee table (Structured)
-CREATE TABLE employees (
-  id INT PRIMARY KEY,
-  name VARCHAR(100),
-  email VARCHAR(100),
-  salary DECIMAL(10, 2),
-  department VARCHAR(50),
-  hireDate DATE
-);
-
--- Every record has exactly these 6 fields
--- All data follows the same structure
-```
-
-**Advantages:**
-- ✅ Efficient querying and indexing
-- ✅ Data consistency guaranteed
-- ✅ Easier to validate and constrain
-- ✅ Optimal for relationships (joins)
-- ✅ Better for reporting and analytics
-
-**Best Used With:** SQL Databases (MySQL, PostgreSQL, Oracle)
-
 ---
 
-### Unstructured Data
-
-**Definition:** Data that **doesn't follow a predefined structure** or schema.
-
-**Characteristics:**
-- No fixed format or organization
-- Flexible schema (or no schema)
-- Different records can have different fields
-- Text, images, videos, audio
-- Harder to search and query
-- High volume, variety
-
-**Examples:**
-- Social media posts (different users, different content types)
-- Log files (varying formats and fields)
-- User-generated content (reviews, comments, articles)
-- Images and videos
-- Email messages
-- Customer feedback and surveys
-
-**Storage:**
-```javascript
-// Example: Social media posts (Unstructured)
-// Post 1
-{
-  userId: 123,
-  content: "Just had coffee!",
-  timestamp: "2024-01-15T10:30:00Z",
-  likes: 45
-}
-
-// Post 2 (different structure)
-{
-  userId: 456,
-  content: "Check out this photo",
-  image: "https://...",
-  timestamp: "2024-01-15T11:00:00Z",
-  likes: 200,
-  comments: [{ userId: 789, text: "Nice!" }],
-  hashtags: ["photography", "nature"]
-}
-
-// Post 3 (yet another structure)
-{
-  userId: 789,
-  videoUrl: "https://...",
-  duration: 120,
-  caption: "Video tutorial",
-  views: 1000,
-  shares: 50
-}
-
-// Each post can have different fields!
-```
-
-**Advantages:**
-- ✅ Flexible and adaptable to changing requirements
-- ✅ Can handle diverse data types
-- ✅ Scalable for massive data volumes
-- ✅ Fast writes (no schema validation overhead)
-- ✅ Good for rapid development (iterate quickly)
-
-**Disadvantages:**
-- ❌ Harder to query and search
-- ❌ No guaranteed data consistency
-- ❌ More complex to analyze
-- ❌ Storage overhead (stores field names with every record)
-
-**Best Used With:** NoSQL Databases (MongoDB, DynamoDB, Cassandra)
-
----
-
-### Structured vs Unstructured: Comparison
-
-| Aspect | Structured | Unstructured |
-|--------|-----------|--------------|
-| **Format** | Fixed, predefined | Flexible, varying |
-| **Schema** | Strict schema required | No fixed schema |
----
-
----
 
 ## Day 4 — Building the Full Database Schema With Sequelize
 
