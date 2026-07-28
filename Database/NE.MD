@@ -396,21 +396,102 @@ flowchart LR
 
 ### 2.5 Other Data Types — ENUM, TINYINT, BOOLEAN
 
-**ENUM — Definition:** a column that can hold only one value from a predefined list.
+*
+### Specialized MySQL Data Types
 
+#### ENUM
+
+**Definition:** A column that can hold **only one value from a predefined list**.
+
+**Syntax:**
 ```sql
-status ENUM('pending', 'active', 'closed')
+ENUM('value1', 'value2', 'value3')
 ```
 
-> **Analogy — A Multiple-Choice Question**
-> A VARCHAR column is a fill-in-the-blank question — anything can be typed. An ENUM column is a multiple-choice question — a value must be picked from the given options; there is no "other" box.
+**Example:**
+```sql
+CREATE TABLE posts (
+  id INT PRIMARY KEY,
+  title VARCHAR(255),
+  status ENUM('active', 'pending', 'deleted')
+);
+```
 
-**TINYINT — Definition:** a very small integer type, typically used to store small numeric ranges. It is commonly used to represent boolean-style flags (0 or 1) in MySQL, since MySQL does not have a dedicated boolean storage type at the engine level.
+**Use Cases:**
+- ✅ Status fields (active, inactive, pending, archived)
+- ✅ Category fields with fixed options
+- ✅ Role fields (admin, user, guest)
 
-**BOOLEAN — Definition:** a true/false type. In MySQL, `BOOLEAN` is actually stored internally as `TINYINT(1)` — it is a convenience alias, not a separate physical type. Writing `BOOLEAN` in a table definition is really creating a `TINYINT(1)` column underneath.
+**Advantages:**
+- Prevents invalid data entry
+- Keeps data consistent
+- MySQL will reject any value not in the list
+- Space-efficient (stored as integer internally)
 
-> **Analogy — A Light Switch**
-> BOOLEAN/TINYINT is like a light switch — it only has two real positions, on or off, true or false. Unlike VARCHAR or ENUM, there's no list of options to choose from — just a binary state.
+**Example in Sequelize:**
+```javascript
+const Post = sequelize.define('Post', {
+  title: DataTypes.STRING,
+  status: DataTypes.ENUM('active', 'pending', 'deleted'),
+});
+```
+
+---
+
+#### BOOLEAN
+
+**Definition:** A true/false column for yes-or-no questions.
+
+**Typical Usage Examples:**
+- `isVerified` — Is the user email verified?
+- `termsAccepted` — Did the user accept terms?
+- `isActive` — Is the account active?
+- `isPremium` — Is the user a premium subscriber?
+
+**In Sequelize:**
+```javascript
+const User = sequelize.define('User', {
+  email: DataTypes.STRING,
+  isVerified: DataTypes.BOOLEAN,      // false by default
+  termsAccepted: DataTypes.BOOLEAN,   // false by default
+  isActive: DataTypes.BOOLEAN,         // true by default
+});
+```
+
+**Storage:**
+- MySQL stores BOOLEAN as TINYINT(1)
+- `true` = 1
+- `false` = 0
+
+---
+
+#### TINYINT
+
+**Definition:** A very small integer column (takes up minimal space).
+
+**Range:**
+- Signed: -128 to 127
+- Unsigned: 0 to 255
+
+**Use Cases:**
+- User ratings (1-5 stars)
+- Small counts
+- Flags (0 or 1)
+- Small age ranges
+
+**Example:**
+```sql
+CREATE TABLE ratings (
+  id INT PRIMARY KEY,
+  stars TINYINT,  -- Stores 1-5
+  helpful TINYINT  -- Stores 0 or 1 (like BOOLEAN)
+);
+```
+
+**Storage Benefit:**
+- TINYINT uses only 1 byte
+- INT uses 4 bytes
+- Important when storing millions of records
 
 ---
 
