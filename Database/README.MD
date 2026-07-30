@@ -1043,13 +1043,471 @@ flowchart TD
 ```
 
 ---
+---
 
-## Quick Recap — All 5 Days
+# Day 6 — Authentication, JWT Tokens, and npm Versioning
 
-| Day | Core topics |
-|---|---|
-| 1 | Why a plain file fails, installing MySQL, Server/Database/Table/Row hierarchy, creating tables, Primary Key, Foreign Key, JOIN |
-| 2 | DBMS vs RDBMS, SQL vs NoSQL, structured vs unstructured data, CHAR vs VARCHAR vs STRING, ENUM, TINYINT, BOOLEAN |
-| 3 | What an ORM is, Sequelize, why an ORM is used even though raw SQL already works |
-| 4 | model vs migration, the nine-table schema, how tables connect via foreign keys, running migrations |
-| 5 | Register API flow, password hashing and why it is one-way, Promises, callback hell, and how Promises/async-await solve it |
+## What we covered today
+
+- Building the register, login, and reset password flow
+- Why passwords are never stored as plain text
+- What a JWT token actually is, and its three parts
+- How `jwt.verify` protects a route
+- What `~` and `^` mean in `package.json` versions
+
+---
+
+## 6.1. The Big Picture — Authentication Flow
+
+Think of authentication like a building with a security desk. When you join, you get an ID card (register). Every time you come back, you show your ID card and they check it matches their records (login). If you lose your old ID and need a new one, the office issues you a fresh one and cancels the old one (reset password).
+
+```
+        ┌───────────┐        ┌───────────┐        ┌────────────────┐
+        │  REGISTER │──────► │   LOGIN   │──────► │ RESET PASSWORD │
+        └───────────┘        └───────────┘        └────────────────┘
+        create account       verify identity        issue new password,
+        hash password        issue new token         old one stops working
+        issue token
+```
+
+Let's go through each step.
+
+---
+
+## 6.2. Register — Creating an Account
+
+```js
+function register(name, email, password) {
+  if (users.find(u => u.email === email))
+    throw new Error('Email already registered');
+
+  const hash = bcrypt.hashSync(password, 10); // one-way, never store plain
+  const user = { id: nextId(), name, email, password: hash };
+  users.push(user);
+
+  const token = jwt.sign({ id: user.id }, SECRET, { expiresIn: '7d' });
+  return { id: user.id, name, email, token };
+}
+```
+
+Step by step:
+1. Check if the email is already registered — if it is, stop right there.
+2. Hash the password using `bcrypt` — this scrambles it into something unreadable.
+3. Save the user with the hashed password (never the plain one).
+4. Issue a token immediately, so the user is logged in right away, without needing to log in separately after registering.
+
+```
+register("Himanshu", "h@x.com", "mypassword")
+        ↓
+{ id: 1, name: 'Himanshu', email: 'h@x.com', token: 'eyJhbGciOiJIU...' }
+```
+
+---
+
+## 6.3. Login — Verifying Identity
+
+```js
+function login(email, password) {
+  const user = users.find(u => u.email === email);
+  if (!user || !bcrypt.compareSync(password, user.password))
+    throw new Error('Invalid credentials');
+
+  const token = jwt.sign({ id: user.id }, SECRET, { expiresIn: '7d' });
+  return { token };
+}
+```
+
+Login doesn't store or compare plain passwords. Instead, it takes the password you typed, hashes it the same way, and checks if the two hashes match using `bcrypt.compareSync`.
+
+```
+login(correct password) → token issued
+login(wrong password)   → rejected: "Invalid credentials"
+```
+
+Notice: a fresh token is issued every time you log in. Tokens aren't permanent — they expire (`expiresIn: '7d'` means 7 days), which is why logging in again gives you a new one.
+
+---
+
+## 6.4. Reset Password — Replacing the Old Hash
+
+```js
+function resetPassword(email, newPassword) {
+  const user = users.find(u => u.email === email);
+  if (!user) throw new Error('User not found');
+
+  user.password = bcrypt.hashSync(newPassword, 10); // hash the new one too
+  return { message: 'Password updated' };
+}
+```
+
+This simply overwrites the stored hash with a new one. There's no "going back" — the old password's hash is gone.
+
+```
+Before reset: stored hash matches OLD password
+      ↓
+resetPassword(email, newPassword)
+      ↓
+After reset:
+  old password → rejected: "Invalid credentials"
+  new password → works
+```
+
+---
+
+## 6.5. Why Passwords Are Hashed (Not Stored as-Is)
+
+Imagine a hash like a paper shredder. Once you shred a document, you can't reconstruct the original from the shredded pieces — but if you shred a second copy of the exact same document, you get the exact same shredded pattern. That's exactly how `bcrypt.hashSync` works: it turns "mypassword123" into something like:
+
+```
+$2b$10$KR0tMiO/l6JH51Bipc3EPuWnSvA9q6QxRx5lR59WI3YuCCvNJ8Smu
+```
+
+You can never turn that string back into the original password. So how does login work? Simple — when you type your password again, it gets shredded the same way, and the app just checks if the two shredded outputs match (`bcrypt.compareSync`). Nobody, not even the developers, can look at the database and read your actual password.
+
+```
+Login attempt password → hash it → compare with stored hash
+                                       ↓
+                          match?  ──── yes ──► logged in
+                                  └─── no  ──► "Invalid credentials"
+```
+
+---
+
+## 6.6. JWT Tokens — What's Actually Inside
+
+A JWT (JSON Web Token) is just a string made of **three parts joined by dots**:
+
+```
+header.payload.signature
+```
+
+Think of it like a sealed envelope with a wax stamp. Anyone can open the envelope and read what's inside (the payload isn't encrypted, just encoded) — but if someone tries to alter the letter inside and reseal it, the wax stamp (signature) won't match anymore, and it's obvious it was tampered with.
+
+### The three parts, decoded:
+
+**HEADER** — tells you the type of token and algorithm used
+```json
+{ "alg": "HS256", "typ": "JWT" }
+```
+
+**PAYLOAD** — the actual data stored in the token
+```json
+{ "id": 5, "role": "student", "iat": ..., "exp": ... }
+```
+
+**SIGNATURE** — a scrambled string created using your secret key
+```
+QWWHS6sXqBYOHMTtPQm5JJ0imJ95FfNUmsgdfCIQGGg
+```
+
+**Important:** anyone who has the token can decode and read the payload — it's not secret, just encoded. That's why we never put sensitive data (like passwords) inside a JWT payload. Only the signature can't be faked, because it needs the secret key to generate.
+
+---
+
+## 6.7. `jwt.verify` — Protecting a Route
+
+```js
+jwt.verify(token, SECRET)
+```
+
+This one line does all the security work. It checks whether the signature actually matches the header + payload, using the secret key.
+
+```
+verify(real, untouched token)  → success → user: Himanshu
+verify(changed token)          → rejected: "invalid signature"
+```
+
+If even a single character in the token is changed, the signature won't match anymore, and `jwt.verify` will reject it immediately. This is what protects every route that requires a logged-in user — the server doesn't need to look anything up in a database; it just checks if the signature is valid.
+
+```
+Request comes in with a token
+        ↓
+jwt.verify(token, SECRET)
+        ↓
+   ┌────┴────┐
+ valid     invalid/tampered
+   │             │
+allow          reject
+access         request
+```
+
+---
+
+## 6.8. npm Versioning — Understanding `~` and `^`
+
+A version number follows the pattern:
+
+```
+MAJOR . MINOR . PATCH
+  4   .  17   .  21
+```
+
+- **MAJOR** — big changes, might break old code
+- **MINOR** — new features, but shouldn't break old code
+- **PATCH** — small bug fixes only
+
+In `package.json`, the symbol in front of the version tells npm how much it's *allowed* to auto-update when installing.
+
+```json
+"express": "^4.17.21"
+```
+
+| Symbol | Example | Allows |
+|---|---|---|
+| *(no symbol)* | `4.17.21` | Only exactly `4.17.21` |
+| `~` (tilde) | `~4.17.21` | Patch updates only → `4.17.21`, `4.17.22` |
+| `^` (caret) | `^4.17.21` | Minor + patch updates → `4.17.22`, `4.18.0`, `4.99.9` — **never** `5.0.0` |
+
+Think of it like a leash on a dog:
+- **No symbol** = dog is tied tight, can't move at all — always the exact same version.
+- **Tilde (`~`)** = short leash — dog can only wander a little (patch updates).
+- **Caret (`^`)** = longer leash — dog can roam more freely (minor + patch updates), but can never cross into the next yard (major version), because a major version could introduce breaking changes.
+
+```
+^4.17.21 allows:
+   4.17.21 ✅
+   4.17.22 ✅ (patch)
+   4.18.0  ✅ (minor)
+   4.99.9  ✅ (still within major version 4)
+   5.0.0   ❌ (major jump — blocked)
+```
+
+This was verified using npm's own semver tool — confirming that neither `~` nor `^` ever crosses into a new major version on their own.
+
+---
+
+## Summary Flow
+
+```
+Register → hash password → issue token
+        ↓
+Login → compare hash → issue new token
+        ↓
+Reset Password → replace old hash → old password stops working
+
+
+JWT = header.payload.signature
+  → payload is readable by anyone (never store secrets there)
+  → signature proves it hasn't been tampered with
+  → jwt.verify checks the signature before trusting the token
+
+
+npm versions = MAJOR.MINOR.PATCH
+  → no symbol  = exact version only
+  → ~ (tilde)  = patch updates only
+  → ^ (caret)  = minor + patch updates, never major
+```
+
+That's authentication, tokens, and versioning — the pieces that quietly protect almost every backend app running today. 🔐
+
+---
+---
+
+# Day 7 — Callbacks in Node.js, and How to Escape Callback Hell
+
+## What we covered today
+
+- What a callback is, and where we use them (files, database, API, timers, user actions)
+- Error-first callbacks — the pattern real Node.js follows
+- Callback hell — and why the nesting happens
+- Fix 1: Breaking steps into named functions
+- Fix 2: Promises with `.then`
+- Fix 3: `async` and `await`
+- Best practices for writing callbacks
+
+---
+
+## 7.1. What is a callback?
+
+In simple words — **a callback is a function that we pass into another function, so that it can be called back once that function finishes its work.**
+
+Think of it like this: you place an order at a restaurant. The waiter doesn't bring your food instantly — they go to the kitchen, place the order, and once it's ready, they come back and tell you ("Order ready!"). You just sit and wait, and only once the work is done do you get notified. That's exactly what a callback does in code.
+
+```js
+function orderFood(callback) {
+  console.log("Ordered food");
+  callback();
+}
+
+orderFood(function() {
+  console.log("Eat!");
+});
+```
+
+Here, `orderFood` does its own work, and at the end it calls `callback()` to say — "my part is done, now go ahead and do yours."
+
+### Where are callbacks used?
+
+- **Working with files** — like reading or writing a file (the file system is slow, results don't come instantly)
+- **Database queries** — data takes time to come back from a database
+- **API calls** — waiting for a response over the internet takes time
+- **Timers** — like `setTimeout`, which does something after a fixed delay
+- **User actions** — like what happens when a button is clicked
+
+In all these cases, the work doesn't finish immediately — it takes some time. A callback tells the program, "once this task is done, run this function."
+
+---
+
+## 7.2. Error-First Callbacks (Node.js's real pattern)
+
+Node.js follows a convention where **the first argument of a callback is always reserved for the error**. If something goes wrong, the error shows up in that first argument. If everything went fine, the first argument is `null` and the second argument is the actual result.
+
+Think of it like someone calling you and saying — "Hey, is there a problem or not?" If there's a problem, they'll tell you the problem first. If not, they'll say "all good" and then give you the result.
+
+```js
+function readFile(name, callback) {
+  if (!name) {
+    return callback("No file name given"); // error first
+  }
+  callback(null, "File contents here"); // null = no error, then result
+}
+
+readFile("notes.txt", function(error, data) {
+  if (error) {
+    console.log("Error:", error);
+  } else {
+    console.log("Got:", data);
+  }
+});
+```
+
+This same pattern repeats everywhere — whether it's reading a file, dividing two numbers, or finding a user in a database:
+
+```js
+function findUser(id, callback) {
+  if (!id) {
+    return callback("No id given");
+  }
+  callback(null, { name: "Himanshu" });
+}
+
+findUser(5, function(error, user) {
+  if (error) {
+    console.log("Error:", error);
+  } else {
+    console.log("User:", user.name);
+  }
+});
+```
+
+**Key takeaway:** always check for `error` first, only then use the result. This prevents a lot of bugs.
+
+---
+
+## 7.3. Callback Hell — and why it happens
+
+When we need to run multiple steps one after another, and each step's result is needed for the next step, we end up nesting callbacks inside one another. For example:
+
+```js
+function wake(cb) { console.log("Wake"); cb(); }
+function brush(cb) { console.log("Brush"); cb(); }
+function bath(cb) { console.log("Bath"); cb(); }
+
+wake(function() {
+  brush(function() {
+    bath(function() {
+      console.log("Ready!");
+    });
+  });
+});
+```
+
+This looks like a simple morning routine — wake up, brush, bathe, get ready. But in code, it creates a **triangle-shaped structure** — a function inside a function, inside another function.
+
+This is called **Callback Hell** — when callbacks get nested inside callbacks so many times that the code becomes hard to read, indentation keeps drifting to the right, and handling errors also becomes complicated.
+
+To visualize the flow:
+
+```
+wake()
+  └── brush()
+        └── bath()
+              └── "Ready!"
+```
+
+The more steps you add, the deeper the nesting gets — and the messier the code looks.
+
+---
+
+## 7.4. Fix 1 — Use Named Functions (remove the nesting)
+
+The simplest solution — instead of nesting callbacks inside each other, turn every step into its **own separate named function**, and have one function call the next directly.
+
+```js
+function wake() { console.log("Wake"); brush(); }
+function brush() { console.log("Brush"); bath(); }
+function bath() { console.log("Bath"); done(); }
+function done() { console.log("Ready!"); }
+
+wake(); // one call kicks off the whole chain
+```
+
+There's no triangle-shaped nesting here — each function does its job and calls the next one. The flow is the same:
+
+```
+wake() → brush() → bath() → done()
+```
+
+But now the code is flat and much easier to read. This is a small fix, though — it's not enough for deeper nesting in more complex real-world flows (like API calls or database operations). For those, we need better tools: **Promises**.
+
+---
+
+## 7.5. Fix 2 — Promises with `.then`
+
+A **Promise** is an object that represents "there's no result right now, but in the future it will either succeed (resolve) or fail (reject)."
+
+Think of it like ordering something online and getting a tracking number. You don't have the item yet, but there's a promise that "once it's ready, you'll get it." You track that promise — if it's delivered successfully (resolve), great; if something goes wrong (reject), you'll know.
+
+```js
+function cook() {
+  return new Promise(function(resolve) {
+    resolve("Food ready");
+  });
+}
+
+cook().then(function(result) {
+  console.log(result);
+});
+```
+
+Here, `cook()` returns a Promise. `resolve("Food ready")` says the task completed successfully, and the result is "Food ready". `.then()` catches that result and does something with it.
+
+The advantage of Promises is that they can be **chained** — one `.then()` after another, without deep nesting. This solves the triangle-shaped problem from before.
+
+---
+
+## 7.6. Fix 3 — `async` and `await`
+
+`async`/`await` is built on top of Promises, but it's an even simpler way to write things — it makes the code **look just like normal, step-by-step code**, like a plain list of instructions, without chaining `.then()`.
+
+Think of it this way: `.then()` chaining is like saying "once this happens, then do that, then after that do this" — all joined into one long sentence. `async/await` is like writing plain instructions — "first do this. Then do that. Then the next step." Much more natural and simple to read.
+
+```js
+function makeTea() {
+  return new Promise(function(resolve) {
+    resolve("Tea ready");
+  });
+}
+
+async function serveTea() {
+  const result = await makeTea();
+  console.log(result);
+}
+
+serveTea();
+```
+
+Here, `await` inside an `async` function means — "pause here until `makeTea()`'s result comes back, then move on." This lets the code be read straight, top-to-bottom, just like a normal function — even though under the hood it's still using Promises.
+
+---
+
+## Quick Comparison — All Three Fixes
+
+| Fix | What it does | When to use it |
+|---|---|---|
+| Named functions | Removes nesting by creating flat functions | Simple, small flows |
+| Promises (`.then`) | Handles results through chaining | When you have multiple async steps and need chaining |
+| `async`/`await` | Makes Promises look like normal, plain code | When you want clean, readable code — most preferred in modern Node.js |
+
+---
+
