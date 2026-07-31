@@ -17,6 +17,7 @@ Daily learning notes and practice from my full-stack development internship — 
 | [api](./api) | APIs, HTTP methods, status codes, fetch(), JSON, authentication basics |
 | [Backend](./Backend) | Backend development with Node.js and Express — Express, routing, middleware, npm, project structure, MVC architecture, Postman, CRUD APIs |
 | [Database](./Database) | Database fundamentals — SQL basics, tables, relationships, CRUD operations, connecting databases with Node.js/Express |
+|[Node.js](./Node.js)  | Node.js fundamental - Event Loop, Call Stack, Queue, and Web/Node APIs — covered through a simple story analogy |
 
 ---
 
