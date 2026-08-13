@@ -437,4 +437,4 @@ project/
 
 ---
 
-*Notes by Unishka Bisht — BCA 3rd Sem, Amrapali University, Haldwani*
+*Notes by Unishka Bisht — BCA 3rd year, Amrapali University, Haldwani*
